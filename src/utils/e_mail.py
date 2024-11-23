@@ -5,9 +5,12 @@ from email.mime.base import MIMEBase
 from email import encoders
 import mimetypes
 from pathlib import Path
+from src.utils import CustomException  # Importing custom exception and logger
+from src.utils.logging import Logger
+import sys
 
-
-# TODO: Future improvement: make the class able to deal with multiple recepients
+logging_folder = Path("logs")
+e_mail_logger = Logger(logging_folder= logging_folder).create_daily_folder_logger()
 
 class EmailConfig:
     """
@@ -53,7 +56,7 @@ class EmailConfig:
                                           If None, uses the default recipient_email.
 
         Raises:
-            Exception: If there is an issue with sending the email.
+            CustomException: If there is an issue with sending the email.
         """
         # Use default recipient if none provided
         target_email = recipient_email or self.recipient_email
@@ -73,9 +76,11 @@ class EmailConfig:
                 server.starttls()
                 server.login(self.sender_email, self.password)
                 server.send_message(message)
-                print("Email sent successfully!")
+                e_mail_logger.info(f"Email sent successfully to {target_email} with subject: {full_subject}")
         except Exception as e:
-            print(f"Error sending email: {e}")
+            error_message = f"Error sending email to {target_email}: {str(e)}"
+            e_mail_logger.error(error_message)  # Log the error using the custom logger
+            raise CustomException(error_message, sys)  # Raise a custom exception with error details
 
     def send_email_with_attachments(
         self, subject: str, body: str, attachments: list[Path], recipient_email: str = None
@@ -89,6 +94,9 @@ class EmailConfig:
             attachments: A list of file paths (Path objects) to attach.
             recipient_email (str, optional): Override the default recipient email.
                                           If None, uses the default recipient_email.
+
+        Raises:
+            CustomException: If there is an issue with sending the email.
         """
         # Use default recipient if none provided
         target_email = recipient_email or self.recipient_email
@@ -108,7 +116,7 @@ class EmailConfig:
         # Attach multiple files
         for attachment in attachments:
             if not attachment.exists():
-                print(f"Attachment not found: {attachment}")
+                e_mail_logger.warning(f"Attachment not found: {attachment}")
                 continue
 
             # Detect MIME type
@@ -126,8 +134,9 @@ class EmailConfig:
                 )
                 message.attach(part)
             except Exception as e:
-                print(f"Error attaching file {attachment}: {e}")
-                continue
+                error_message = f"Error attaching file {attachment}: {str(e)}"
+                e_mail_logger.error(error_message)  # Log the error using the custom logger
+                raise CustomException(error_message, sys)  # Raise a custom exception with error details
 
         # Send the email
         try:
@@ -135,7 +144,8 @@ class EmailConfig:
                 server.starttls()
                 server.login(self.sender_email, self.password)
                 server.send_message(message)
-                print("Email with attachments sent successfully!")
+                e_mail_logger.info(f"Email with attachments sent successfully to {target_email} with subject: {full_subject}")
         except Exception as e:
-            print(f"Error sending email with attachments: {e}")
-
+            error_message = f"Error sending email with attachments to {target_email}: {str(e)}"
+            e_mail_logger.error(error_message)  # Log the error using the custom logger
+            raise CustomException(error_message, sys)  # Raise a custom exception with error details

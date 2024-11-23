@@ -7,6 +7,7 @@ xgboost
 scikit-learn
 joblib
 dvc
+python-dotenv
 
 
 # EDA Requirements (Can be ignored by dockerfile, because they are not necessary to run the CICD Pipeline)
