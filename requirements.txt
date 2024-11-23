@@ -1,0 +1,17 @@
+ipykernel
+numpy 
+pandas
+openpyxl
+catboost
+xgboost
+scikit-learn
+joblib
+dvc
+
+
+# EDA Requirements (Can be ignored by dockerfile, because they are not necessary to run the CICD Pipeline)
+ydata-profiling
+matplotlib
+seaborn
+
+

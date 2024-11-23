@@ -1,0 +1,5 @@
+bases/
+.env
+mvp-notebook/mvp-artifacts/EDA.pbix
+catboost_info/
+
