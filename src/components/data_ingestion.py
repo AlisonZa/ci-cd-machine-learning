@@ -4,9 +4,6 @@ from src.entities import DataIngestionConfig, DataIngestionArtifacts, EmailMessa
 import pandas as pd
 
 
-# Emulating the root folder
-# PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-
 class DataIngestion:
     def __init__(self):
         self.data_ingestion_config= DataIngestionConfig()
@@ -35,7 +32,7 @@ class DataIngestion:
 
 #Testing entrypoint        
 if __name__ == "__main__":
-
+    # python -m src.components.data_ingestion
     e_mail_messages = EmailMessages()
 
     data_ingestion_obj = DataIngestion()
