@@ -8,7 +8,6 @@ from box.exceptions import BoxValueError
 
 from pathlib import Path
 from typing import Any
-import base64
 
 from src.utils import logger_obj
 
