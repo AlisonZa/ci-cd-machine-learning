@@ -2,10 +2,10 @@ import os, sys
 from src.utils import logger_obj, CustomException
 from src.entities import DataValidationArtifacts, DataIngestionArtifacts, DataValidationConfig
 import pandas as pd
-from schemas.data_structure import data_frame_schema
 import pandera as pa
+from schemas.data_structure import data_frame_schema
 import json
-from typing import Union, Dict, Any
+
 
 class DataValidation:
     def __init__(self):
@@ -34,8 +34,6 @@ class DataValidation:
             logger_obj.error(f"Error during Schema Validation:\n{e}")
             raise e
 
-
-
     def statistical_dataframe_validation(
         self,
         validated_schema_df,
@@ -52,8 +50,10 @@ class DataValidation:
         reference_stats_path = self.data_validation_config.reference_statistics
         numerical_tolerance = self.data_validation_config.numerical_tolerance
         categorical_tolerance = self.data_validation_config.categorical_tolerance
-
+        
+        logger_obj.info(f"{'*'*10}Entering the process of checking the Data Drift{'*'*10}\nparameters:\nnumerical_tolerance: {numerical_tolerance}\ncategorical_tolerance: {categorical_tolerance}")
         # Load reference statistics
+        
         if isinstance(reference_stats_path, str):
             with open(reference_stats_path, 'r') as f:
                 reference_stats = json.load(f)
@@ -77,11 +77,14 @@ class DataValidation:
                 # Compare mean
                 mean_diff = abs(current_mean - stats['mean'])
                 if mean_diff > numerical_tolerance * stats['std']:
+                    logger_obj.info(f"Error During Data Drift Validation")
                     return False
+                    
                 
                 # Compare standard deviation
                 std_ratio = current_std / stats['std']
                 if std_ratio < 1/1.5 or std_ratio > 1.5:
+                    logger_obj.info(f"Error During Data Drift Validation")
                     return False
             
             # Categorical feature validation
@@ -94,15 +97,19 @@ class DataValidation:
                 for category, ref_proportion in ref_value_counts.items():
                     current_proportion = current_value_counts.get(category, 0)
                     if abs(current_proportion - ref_proportion) > categorical_tolerance:
+                        logger_obj.info(f"Error During Data Drift Validation for Categorical Features")
                         return False
+        
+        logger_obj.info(f"{'*'*10}Succesfully Validated the Data Drift{'*'*10}")
         return True
-    
+        
     def run_data_validation(self):
         try:
             validated_schema_df = self.validate_data_schema()
             validation_passed = self.statistical_dataframe_validation(validated_schema_df)
             if validation_passed == True:
                 validated_schema_df.to_csv(self.data_validation_artifacts.validated_data_path)
+                logger_obj.info(f"Saved the validated dataframe to: {self.data_validation_artifacts.validated_data_path}")
 
         except Exception as e:
             logger_obj.error(f"Error during data_validation :\n{CustomException(e ,sys)}")

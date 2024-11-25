@@ -4,6 +4,10 @@ from dataclasses import dataclass
 
 @dataclass
 class EmailMessages:
+    """
+    
+    
+    """
     data_ingestion_error_email_subject: str = f"""Error Data Ingestion"""
     data_ingestion_success_email_subject: str = f"""Data Ingestion Completed"""
 
@@ -28,14 +32,26 @@ class DataIngestionArtifacts:
 
 @dataclass
 class DataValidationConfig:
-    reference_statistics: str = os.path.join("schemas", "reference_stats.json") 
-    numerical_tolerance: float = 3.0
-    categorical_tolerance: float = 1.0 
+    """
+    Configuration class for data validation thresholds.
+
+    Attributes:
+        numerical_tolerance (float): The maximum allowed deviation for numerical features 
+            before they are flagged as having drift. Default is 1.3.
+        categorical_tolerance (float): The maximum allowed deviation for categorical features 
+            before they are flagged as having drift. Default is 0.2.
+    """
+    numerical_tolerance: float = 1.3
+    categorical_tolerance: float = 0.2
+    reference_statistics: str = os.path.join( "schemas", "reference_stats.json")
 
 @dataclass
 class DataValidationArtifacts:
     data_validation_root_folder: str = os.path.join( "artifacts", "data_validation") # Creates the step folder
     validated_data_path: str = os.path.join(data_validation_root_folder, 'validated_data.csv') 
+    data_validation_report_folder: str = os.path.join(data_validation_root_folder, 'data_validation_report.json') 
+
+
 
 
 
