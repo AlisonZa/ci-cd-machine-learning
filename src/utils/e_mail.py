@@ -42,7 +42,7 @@ class EmailConfig:
         full_subject = f"{self.subject_identifier}: {subject}"
         
         # Log the email details (without sensitive data)
-        logger_obj.info(f"Preparing to send email to {target_email} with subject: {full_subject}")
+        logger_obj.info(f"Preparing to send email with subject: {full_subject}")
         
         message = MIMEText(body, "plain")
         message["Subject"] = full_subject
@@ -57,9 +57,9 @@ class EmailConfig:
                 server.login(self.sender_email, self.password)
                 logger_obj.info("Logged into SMTP server successfully.")
                 server.send_message(message)
-                logger_obj.info(f"Email sent successfully to {target_email}.")
+                logger_obj.info(f"Email sent successfully.")
         except Exception as e:
-            error_message = f"Error sending email to {target_email}: {str(e)}"
+            error_message = f"Error sending email: {str(e)}"
             logger_obj.error(error_message)
             raise CustomException(error_message, sys)
 
@@ -73,7 +73,7 @@ class EmailConfig:
         full_subject = f"{self.subject_identifier}: {subject}"
         
         # Log the email and attachment details
-        logger_obj.info(f"Preparing to send email with attachments to {target_email} with subject: {full_subject}")
+        logger_obj.info(f"Preparing to send email with attachments with subject: {full_subject}")
         logger_obj.info(f"Attachments: {[str(attachment) for attachment in attachments]}")
 
         message = MIMEMultipart()
@@ -115,8 +115,8 @@ class EmailConfig:
                 server.login(self.sender_email, self.password)
                 logger_obj.info("Logged into SMTP server successfully.")
                 server.send_message(message)
-                logger_obj.info(f"Email with attachments sent successfully to {target_email}.")
+                logger_obj.info(f"Email with attachments sent successfully.")
         except Exception as e:
-            error_message = f"Error sending email with attachments to {target_email}: {str(e)}"
+            error_message = f"Error sending email with attachments: {str(e)}"
             logger_obj.error(error_message)
             raise CustomException(error_message, sys)

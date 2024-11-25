@@ -1,8 +1,7 @@
 import os, sys
-from src.utils import logger_obj, e_mail_obj ,CustomException
-from src.entities import DataIngestionConfig, DataIngestionArtifacts, EmailMessages
+from src.utils import logger_obj,CustomException
+from src.entities import DataIngestionConfig, DataIngestionArtifacts
 import pandas as pd
-
 
 class DataIngestion:
     def __init__(self):
@@ -19,7 +18,7 @@ class DataIngestion:
             raise CustomException(e ,sys)
 
     def perform_data_ingestion_csv_files(self):
-        try:
+        try: 
             logger_obj.info(f"Loading the data from:\n{self.data_ingestion_config.raw_data_path}")
             raw_dataframe = pd.read_csv(self.data_ingestion_config.raw_data_path)
 
@@ -30,19 +29,6 @@ class DataIngestion:
             logger_obj.error(f"Error during data_ingestion :\n{CustomException(e ,sys)}")
             raise CustomException(e ,sys)
 
-#Testing entrypoint        
-if __name__ == "__main__":
-    # python -m src.components.data_ingestion
-    e_mail_messages = EmailMessages()
-
-    data_ingestion_obj = DataIngestion()
-
-    if __name__ == "__main__":
-        try:
-            data_ingestion_obj.perform_data_ingestion_csv_files()
-            e_mail_obj.send_email(e_mail_messages.data_ingestion_success_email_subject, e_mail_messages.data_ingestion_success_message)
-        except:
-            e_mail_obj.send_email(e_mail_messages.data_ingestion_error_email_subject, e_mail_messages.data_ingestion_error_message)
 
 
 

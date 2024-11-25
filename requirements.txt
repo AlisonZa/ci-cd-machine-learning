@@ -9,7 +9,7 @@ joblib
 dvc
 python-dotenv
 python-box
-
+pandera
 
 # EDA Requirements (Can be ignored by dockerfile, because they are not necessary to run the CICD Pipeline)
 ydata-profiling
