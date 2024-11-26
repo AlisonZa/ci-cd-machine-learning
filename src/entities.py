@@ -3,6 +3,8 @@ from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 from typing import Union
+from typing import List, Optional, Dict, Any
+
 
 # TODO comment, typing suggestion
 
@@ -99,6 +101,7 @@ class FeatureDefinition:
 class ModelTrainingArtifacts:
     model_training_root_folder: str = os.path.join( "artifacts", "model_training") # Creates the step folder
     best_models_folder = os.path.join(model_training_root_folder, "best_models")
+    best_model_overall_path = os.path.join(model_training_root_folder, "best_model.joblib")
 
     best_model_overall = None
     best_models = None
@@ -108,7 +111,47 @@ class ModelTrainingArtifacts:
 @dataclass
 class ModelTrainingParams:
     main_scoring_criteria: str = 'r2_score'
-    number_of_folds_kfold:int = 5
+    number_of_folds_kfold: int = 5
 
 
+################# Prediction Classes:
+
+@dataclass
+class PredictionInput:
+    """
+    Standardized input data structure for predictions
+    Represents student performance input features
+    """
+    gender: str
+    race_ethnicity: str
+    parental_level_of_education: str
+    lunch: str
+    test_preparation_course: str
+    reading_score: int
+    writing_score: int
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert dataclass to dictionary for easier preprocessing
+        """
+        return {
+            'gender': self.gender,
+            'race_ethnicity': self.race_ethnicity,
+            'parental_level_of_education': self.parental_level_of_education,
+            'lunch': self.lunch,
+            'test_preparation_course': self.test_preparation_course,
+            'reading_score': self.reading_score,
+            'writing_score': self.writing_score
+        }
+
+
+
+@dataclass
+class PredictionOutput:
+    """
+    Standardized output data structure for predictions
+    """
+    prediction: int
+    probabilities: Optional[Dict[str, float]] = None
+    explanation: Optional[str] = None
 

@@ -191,10 +191,7 @@ class ModelTraining:
     def save_best_model_overall(self):      
         model = self.model_training_artifacts.best_model_overall
         
-        filename = f"best_model_{model.__class__.__name__}.joblib"
-
-        model_path = os.path.join(self.model_training_artifacts.model_training_root_folder, filename)
-        joblib.dump(model, model_path)
+        joblib.dump(model, self.model_training_artifacts.best_model_overall_path)
 
 
     def run_model_training_and_evaluation(self):
