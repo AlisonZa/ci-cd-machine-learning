@@ -5,6 +5,7 @@ import joblib
 from typing import Dict, Any
 from src.entities import PredictionInput, PredictionOutput, ModelTrainingArtifacts, DataPreprocessingArtifacts
 import pandas as pd
+from typing import List, Union
 
 
 class RegressionComponent:
@@ -42,52 +43,56 @@ class RegressionComponent:
             raise RuntimeError(f"Error loading preprocessor: {e}")
 
 
-    def predict(self, input_data: PredictionInput) -> PredictionOutput:
+    def predict(self, input_data: Union[PredictionInput, List[PredictionInput]]) -> List[PredictionOutput]:
         """
-        Make predictions using the loaded model and preprocessor
-        
-        Args:
-            input_data (PredictionInput): Input features for prediction
-        
-        Returns:
-            PredictionOutput: Prediction results
-        """
-        # Convert input to dictionary
-        features_dict = {
-            'gender': input_data.gender,
-            'race_ethnicity': input_data.race_ethnicity,
-            'parental_level_of_education': input_data.parental_level_of_education,
-            'lunch': input_data.lunch,
-            'test_preparation_course': input_data.test_preparation_course,
-            'reading_score': input_data.reading_score,
-            'writing_score': input_data.writing_score
-        }
-        
-        # Preprocess input
-        processed_features = self._preprocess(features_dict)
-        
-        # Make prediction
-        prediction = self.model.predict(processed_features)
-
-        return PredictionOutput(
-            prediction=prediction[0],
-            probabilities={
-                'predicted_value': prediction[0]
-            }
-        )
-
-    def _preprocess(self, features: Dict[str, Any]):
-        """
-        Preprocessing specific to this component
+        Make predictions using the loaded model and preprocessor for single or batch input.
 
         Args:
-            features (Dict[str, Any]): Raw input features
+            input_data (Union[PredictionInput, List[PredictionInput]]): Input features for prediction (single or batch).
 
         Returns:
-            np.ndarray: Processed features ready for model prediction
+            List[PredictionOutput]: List of prediction results.
         """
-        # Convert features to DataFrame for compatibility
-        features_df = pd.DataFrame([features])  # Convert single dictionary to DataFrame
-        # Transform features using the preprocessor
+        if isinstance(input_data, PredictionInput):  # Single input
+            input_data = [input_data]  # Convert to batch format
+        
+        # Convert input data to a list of dictionaries
+        features_list = [{
+            'gender': item.gender,
+            'race_ethnicity': item.race_ethnicity,
+            'parental_level_of_education': item.parental_level_of_education,
+            'lunch': item.lunch,
+            'test_preparation_course': item.test_preparation_course,
+            'reading_score': item.reading_score,
+            'writing_score': item.writing_score
+        } for item in input_data]
+        
+        # Preprocess inputs
+        processed_features = self._preprocess(features_list)
+        
+        # Make predictions
+        predictions = self.model.predict(processed_features)
+        
+        # Generate PredictionOutput for each row
+        results = [
+            PredictionOutput(
+                prediction=pred,
+                probabilities={'predicted_value': pred}
+            ) for pred in predictions
+        ]
+        return results
+
+    def _preprocess(self, features: List[Dict[str, Any]]):
+        """
+        Preprocessing for batch inputs.
+
+        Args:
+            features (List[Dict[str, Any]]): Batch of raw input features.
+
+        Returns:
+            np.ndarray: Processed features ready for model prediction.
+        """
+        import pandas as pd
+        features_df = pd.DataFrame(features)  # Convert list of dicts to DataFrame
         processed_features = self.preprocessor.transform(features_df)
         return processed_features
