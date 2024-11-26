@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from typing import Union
 
+# TODO comment, typing suggestion
 
 
 @dataclass
@@ -56,8 +57,8 @@ class DataValidationConfig:
 @dataclass(frozen = True)
 class DataValidationArtifacts:
     data_validation_root_folder: str = os.path.join( "artifacts", "data_validation") # Creates the step folder
-    validated_data_path: str = os.path.join(data_validation_root_folder, 'validated_data.csv') 
-    data_validation_report_folder: str = os.path.join(data_validation_root_folder, 'data_validation_report.json') 
+    validated_data_path: str = os.path.join(data_validation_root_folder, 'validated_data.csv')
+
 
 
 @dataclass
@@ -94,9 +95,20 @@ class FeatureDefinition:
     numeric_scalars: list[str] = field(default_factory=lambda: ["reading_score", "writing_score"])
 
 
+@dataclass
+class ModelTrainingArtifacts:
+    model_training_root_folder: str = os.path.join( "artifacts", "model_training") # Creates the step folder
+    best_models_folder = os.path.join(model_training_root_folder, "best_models")
 
-
-
-
-
+    best_model_overall = None
+    best_models = None
+    results = None
     
+
+@dataclass
+class ModelTrainingParams:
+    main_scoring_criteria: str = 'r2_score'
+    number_of_folds_kfold:int = 5
+
+
+

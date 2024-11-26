@@ -5,9 +5,7 @@ import sys
 from src.components.data_ingestion import DataIngestion
 from src.components.data_validation import DataValidation
 from src.components.data_preprocessing import DataPreprocessing
-
-
-
+from src.components.model_training import ModelTraining
 
 
 def run_training_pipeline():
@@ -59,7 +57,19 @@ def run_training_pipeline():
         raise CustomException(e ,sys)
 
 
+    # Model Training:
+    logger_obj.info(f"{'*'*5}Entering the Model Training Step{'*'*5}")
+    model_training_obj = ModelTraining()    
+    
+    try:
+        model_training_obj.run_model_training_and_evaluation()
+        # e_mail_obj.send_email(e_mail_messages.data_preprocessing_success_email_subject, e_mail_messages.data_preprocessing_success_message)
+        logger_obj.info(f"{'*'*5}Successfully ran the Model Training Step{'*'*5}")
 
+    except Exception as e:
+        # e_mail_obj.send_email(e_mail_messages.data_preprocessing_error_email_subject, e_mail_messages.data_preprocessing_error_message)
+        logger_obj.exception(f"Exception During Model Training Step\n:{e}")
+        raise CustomException(e ,sys)
 
 
 if __name__ == "__main__":

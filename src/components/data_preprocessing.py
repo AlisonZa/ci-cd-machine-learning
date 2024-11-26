@@ -10,6 +10,9 @@ from sklearn.pipeline import Pipeline
 import joblib
 import numpy as np
 
+# TODO comment, typing suggestion, logging
+
+
 class DataPreprocessing:
     def __init__(self):
         self.data_validation_artifacts = DataValidationArtifacts()
