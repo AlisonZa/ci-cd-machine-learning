@@ -10,6 +10,7 @@ dvc
 python-dotenv
 python-box
 pandera
+flask
 
 # EDA Requirements (Can be ignored by dockerfile, because they are not necessary to run the CICD Pipeline)
 ydata-profiling

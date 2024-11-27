@@ -60,28 +60,28 @@ def batch_predict_pipeline(input_file: str, output_file: str):
 
 
 # Entrypoint:
-if __name__ == "__main__":
+# if __name__ == "__main__":
     
-    print(f"Testing Single Prediction")
+#     print(f"Testing Single Prediction")
     
-    input_data = PredictionInput(
+#     input_data = PredictionInput(
     
-    gender='female',
-    race_ethnicity='group B',
-    parental_level_of_education='some college',
-    lunch='standard',
-    test_preparation_course='completed',
-    reading_score=75,
-    writing_score=80
-    )
+#     gender='female',
+#     race_ethnicity='group B',
+#     parental_level_of_education='some college',
+#     lunch='standard',
+#     test_preparation_course='completed',
+#     reading_score=75,
+#     writing_score=80
+#     )
 
-    prediction_result = predict_pipeline(input_data)
-    print(prediction_result[0].prediction)
+#     prediction_result = predict_pipeline(input_data)
+#     print(prediction_result[0].prediction)
 
-    print(f"Testing Batch Prediction")
+#     print(f"Testing Batch Prediction")
     
-    input_file, output_file = os.path.join("batch_prediction", "x_input.csv"), os.path.join("batch_prediction", "y_pred.csv") 
-    batch_predict_pipeline(input_file, output_file)
+#     input_file, output_file = os.path.join("batch_prediction", "x_input.csv"), os.path.join("batch_prediction", "y_pred.csv") 
+#     batch_predict_pipeline(input_file, output_file)
 
 
     
