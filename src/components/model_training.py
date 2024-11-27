@@ -26,6 +26,15 @@ from sklearn.ensemble import RandomForestRegressor, AdaBoostRegressor
 from xgboost import XGBRegressor
 from catboost import CatBoostRegressor
 import joblib
+import warnings
+from dotenv import load_dotenv
+import os
+import mlflow
+import mlflow.sklearn
+import numpy as np
+
+
+warnings.filterwarnings("ignore")
 
 
 class ModelTraining:
@@ -190,9 +199,57 @@ class ModelTraining:
 
     def save_best_model_overall(self):      
         model = self.model_training_artifacts.best_model_overall
-        
         joblib.dump(model, self.model_training_artifacts.best_model_overall_path)
 
+
+    def log_to_mlflow(self):
+        """
+        Logs training artifacts (best model, other models, and results) to MLflow.
+        
+        This function loads environment variables from a `.env` file, sets up the 
+        connection to the MLflow server using those variables, and logs the 
+        artifacts from the model training process, such as the best model and 
+        related files like results.
+        
+        Environment variables:
+        - MLFLOW_TRACKING_URI: URI for the MLflow tracking server.
+        - MLFLOW_TRACKING_USERNAME: Username for MLflow server authentication.
+        - MLFLOW_TRACKING_PASSWORD: Password for MLflow server authentication.
+        """
+        
+        try:
+            # Load environment variables
+            load_dotenv()
+            
+            mlflow.set_tracking_uri(os.getenv('MLFLOW_TRACKING_URI'))
+            mlflow.set_experiment('Students Regression Model Training')  # Optionally, you can set a specific experiment name
+            
+            # Getting all the names of the files in the best_models foder
+            file_names = self.get_files_in_folder(self.model_training_artifacts.best_models_folder)
+
+            with mlflow.start_run():
+                # Log the best overall model
+                for file_name in file_names:
+
+                    file_path = os.path.join(self.model_training_artifacts.best_models_folder, file_name)
+                    mlflow.log_artifact(file_path)
+                    
+                
+                # Log the results file
+                results_file_path = os.path.join(self.model_training_artifacts.model_training_root_folder, "results.xlsx")
+                mlflow.log_artifact(results_file_path)
+                
+                print("Artifacts logged successfully.")
+                mlflow.end_run()
+
+        except Exception as e:
+            print(f"Error logging to MLflow: {e}")
+
+    # TODO move to utils
+    def get_files_in_folder(self, folder_path):
+        # Get all files in the folder
+        files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+        return files
 
     def run_model_training_and_evaluation(self):
         try:
@@ -200,7 +257,9 @@ class ModelTraining:
             self.save_results()
             self.save_best_models()
             self.save_best_model_overall()
+            self.log_to_mlflow()
   
+
         except Exception as e:
             logger_obj.error(f"Error during run model training and evaluation :\n{CustomException(e ,sys)}")
             raise CustomException(e ,sys)
