@@ -196,7 +196,7 @@ class DataclassConfigurationApp:
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save configurations: {str(e)}")
 
-
+# Functions to validate the inputs
 def validate_numerical_tolerance(value):
     """Validate numerical tolerance is between 0 and 3."""
     try:

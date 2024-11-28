@@ -3,9 +3,8 @@ from typing import Type
 import json
 import os
 
-# import the classes that are going to be configured by the MLConfig class
+# import the classes that are going to be configured by the MLConfig class, in the final of this file we instantiate the object
 from configurations.config_entities import DataIngestionConfig, DataValidationConfig, FeatureDefinition, ModelTrainingParams
-
 
 @dataclass
 class MLConfig:
