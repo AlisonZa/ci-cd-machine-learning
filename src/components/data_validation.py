@@ -114,3 +114,7 @@ class DataValidation:
         except Exception as e:
             logger_obj.error(f"Error during data_validation :\n{CustomException(e ,sys)}")
             raise CustomException(e ,sys)
+
+if __name__ == "__main__":
+    data_validation_obj = DataValidation()
+    data_validation_obj.run_data_validation()

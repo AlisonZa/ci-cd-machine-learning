@@ -31,19 +31,6 @@ class DataPreprocessing:
             logger_obj.error(f"Error during creating the data_preprocessing folder, Error:\n{CustomException(e ,sys)}")
             raise CustomException(e ,sys)
 
-    # def perform_data_ingestion_csv_files(self):
-    #     try: 
-    #         logger_obj.info(f"Loading the data from:\n{self.data_ingestion_config.raw_data_path}")
-    #         raw_dataframe = pd.read_csv(self.data_ingestion_config.raw_data_path)
-
-    #         raw_dataframe.to_csv(self.data_ingestion_artifacts.saved_raw_data_path, index= False)
-    #         logger_obj.info(f"Succesfully saved the data to the artifacts folder:\n{self.data_ingestion_artifacts.saved_raw_data_path}")
-
-    #     except Exception as e:
-    #         logger_obj.error(f"Error during data_ingestion :\n{CustomException(e ,sys)}")
-    #         raise CustomException(e ,sys) 
-
-
     def train_test_split_for_regresison(self, test_size = 0.2):
 
         logger_obj.info(f"Sarting the train_test_split")
@@ -127,4 +114,6 @@ class DataPreprocessing:
             raise CustomException(e ,sys)
 
 
-
+if __name__ == "__main__":
+    data_preprocessing_obj = DataPreprocessing()
+    data_preprocessing_obj.run_data_preprocessing()

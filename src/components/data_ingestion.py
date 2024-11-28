@@ -29,7 +29,9 @@ class DataIngestion:
             logger_obj.error(f"Error during data_ingestion :\n{CustomException(e ,sys)}")
             raise CustomException(e ,sys)
 
-
+if __name__ == "__main__":
+    data_ingestion_obj = DataIngestion()
+    data_ingestion_obj.perform_data_ingestion_csv_files()
 
 
 

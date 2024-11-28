@@ -1,0 +1,44 @@
+
+stages:
+  data_ingestion:
+    cmd: python -m src.components.data_ingestion
+    deps:
+      - raw_data/students.csv
+    outs:
+      - artifacts/data_ingestion/students.csv
+
+  data_validation:
+    cmd: python -m src.components.data_validation
+    deps:
+      - artifacts/data_ingestion/students.csv
+      - schemas/reference_stats.json
+    outs:
+      - artifacts/data_validation/validated_data.csv
+
+  data_preprocessing:
+    cmd: python -m src.components.data_preprocessing
+    deps:
+      - artifacts/data_validation/validated_data.csv
+    outs:
+      - artifacts/data_preprocessing/trained_preprocessor.pkl
+      - artifacts/data_preprocessing/preprocessed_data/X_train_transformed.npy
+      - artifacts/data_preprocessing/preprocessed_data/X_test_transformed.npy
+      - artifacts/data_preprocessing/preprocessed_data/y_train.npy
+      - artifacts/data_preprocessing/preprocessed_data/y_test_transformed.npy
+
+  model_training:
+    cmd: python -m src.components.model_training
+    deps:
+      - artifacts/data_preprocessing/preprocessed_data/X_train_transformed.npy
+      - artifacts/data_preprocessing/preprocessed_data/X_test_transformed.npy
+      - artifacts/data_preprocessing/preprocessed_data/y_train.npy
+      - artifacts/data_preprocessing/preprocessed_data/y_test_transformed.npy
+    outs:
+      - artifacts/model_training/best_model.joblib
+      - artifacts/model_training/results.xlsx
+      - artifacts/model_training/best_models/
+
+
+
+
+

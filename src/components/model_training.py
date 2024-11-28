@@ -359,8 +359,8 @@ class ModelTraining:
             raise CustomException(e ,sys)
 
 
-
-
-
+if __name__ == "__main__":
+    model_training_obj = ModelTraining()
+    model_training_obj.run_model_training_and_evaluation()
 
 
