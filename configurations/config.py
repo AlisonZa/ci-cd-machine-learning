@@ -1,32 +1,14 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+
 import os
 import json
 
+# import the classes that are going to be configured by the MLConfig class
 from configurations.config_entities import DataIngestionConfig, DataValidationConfig, FeatureDefinition, ModelTrainingParams
 
-from dataclasses import dataclass
 
-@dataclass
-class MLConfig:
-    data_ingestion: DataIngestionConfig = DataIngestionConfig()
-    data_validation: DataValidationConfig = DataValidationConfig()
-    feature_definition: FeatureDefinition = FeatureDefinition()
-    model_training: ModelTrainingParams = ModelTrainingParams()
-
-    @classmethod
-    def from_json(cls, json_path: str = os.path.join("configurations", "project_configurations.json")) -> 'MLConfig':
-        with open(json_path, 'r') as f:
-            config_dict = json.load(f)
-        
-        return cls(
-            data_ingestion=DataIngestionConfig(**config_dict['data_ingestion']),
-            data_validation=DataValidationConfig(**config_dict['data_validation']),
-            feature_definition=FeatureDefinition(**config_dict['feature_definition']),
-            model_training=ModelTrainingParams(**config_dict['model_training'])
-        )
-
-
+# To create the Json File that is going to be passed to the class MLConfig, we use the following code:
 class DataclassConfigurationApp:
     def __init__(self, master):
         self.master = master
@@ -57,7 +39,7 @@ class DataclassConfigurationApp:
         frame = ttk.Frame(self.notebook)
         
         # Raw Data Path
-        tk.Label(frame, text="Raw Data Path:").pack(pady=(10,0))
+        tk.Label(frame, text="Raw Data Path (input dataset location):").pack(pady=(10,0))
         self.raw_data_path_entry = tk.Entry(frame, width=50)
         self.raw_data_path_entry.insert(0, os.path.join("raw_data", "students.csv"))
         self.raw_data_path_entry.pack(pady=5)
@@ -67,17 +49,19 @@ class DataclassConfigurationApp:
     def create_data_validation_tab(self):
         frame = ttk.Frame(self.notebook)
         
-        # Numerical Tolerance
-        tk.Label(frame, text="Numerical Tolerance:").pack(pady=(10,0))
+        # Numerical Tolerance with validation hint
+        tk.Label(frame, text="Numerical Tolerance (0-3):").pack(pady=(10,0))
         self.numerical_tolerance_entry = tk.Entry(frame, width=10)
         self.numerical_tolerance_entry.insert(0, "1.3")
         self.numerical_tolerance_entry.pack(pady=5)
+        tk.Label(frame, text="Allowed range: 0 to 3", foreground="gray").pack()
 
-        # Categorical Tolerance
-        tk.Label(frame, text="Categorical Tolerance:").pack(pady=(10,0))
+        # Categorical Tolerance with validation hint
+        tk.Label(frame, text="Categorical Tolerance (0-1):").pack(pady=(10,0))
         self.categorical_tolerance_entry = tk.Entry(frame, width=10)
         self.categorical_tolerance_entry.insert(0, "0.2")
         self.categorical_tolerance_entry.pack(pady=5)
+        tk.Label(frame, text="Allowed range: 0 to 1", foreground="gray").pack()
 
         # Reference Statistics Path
         tk.Label(frame, text="Reference Statistics Path:").pack(pady=(10,0))
@@ -124,27 +108,57 @@ class DataclassConfigurationApp:
         self.main_scoring_criteria_entry = tk.Entry(frame, width=30)
         self.main_scoring_criteria_entry.insert(0, "r2_score")
         self.main_scoring_criteria_entry.pack(pady=5)
+        tk.Label(frame, text="Allowed values: r2_score, mae, rmse, mse", foreground="gray").pack()
 
         # Number of Folds
-        tk.Label(frame, text="Number of K-Fold Splits:").pack(pady=(10,0))
+        tk.Label(frame, text="Number of K-Fold Splits (5-1000):").pack(pady=(10,0))
         self.number_of_folds_entry = tk.Entry(frame, width=10)
         self.number_of_folds_entry.insert(0, "5")
         self.number_of_folds_entry.pack(pady=5)
+        tk.Label(frame, text="Allowed range: 5 to 1000", foreground="gray").pack()
 
         return frame
 
     def save_configurations(self):
         try:
+            # Validate inputs before saving
+            validation_errors = []
+
+            # Numerical Tolerance Validation
+            numerical_tolerance = self.numerical_tolerance_entry.get()
+            if not validate_numerical_tolerance(numerical_tolerance):
+                validation_errors.append("Numerical Tolerance must be between 0 and 10")
+
+            # Categorical Tolerance Validation
+            categorical_tolerance = self.categorical_tolerance_entry.get()
+            if not validate_categorical_tolerance(categorical_tolerance):
+                validation_errors.append("Categorical Tolerance must be between 0 and 3")
+
+            # Main Scoring Criteria Validation
+            main_scoring_criteria = self.main_scoring_criteria_entry.get()
+            if not validate_main_scoring_criteria(main_scoring_criteria):
+                validation_errors.append("Main Scoring Criteria must be one of: r2_score, mae, rmse, mse")
+
+            # Number of Folds Validation
+            number_of_folds = self.number_of_folds_entry.get()
+            if not validate_number_of_folds(number_of_folds):
+                validation_errors.append("Number of Folds must be between 5 and 1000")
+
+            # If any validation errors, show them and stop
+            if validation_errors:
+                error_message = "Please correct the following errors:\n\n" + "\n".join(validation_errors)
+                messagebox.showerror("Validation Error", error_message)
+                return
+
             # Data Ingestion Config
             data_ingestion_config = DataIngestionConfig(
                 raw_data_path=os.path.normpath(self.raw_data_path_entry.get())
             )
 
-
             # Data Validation Config
             data_validation_config = DataValidationConfig(
-                numerical_tolerance=float(self.numerical_tolerance_entry.get()),
-                categorical_tolerance=float(self.categorical_tolerance_entry.get()),
+                numerical_tolerance=float(numerical_tolerance),
+                categorical_tolerance=float(categorical_tolerance),
                 reference_statistics=self.reference_statistics_entry.get()
             )
 
@@ -158,8 +172,8 @@ class DataclassConfigurationApp:
 
             # Model Training Params
             model_training_params = ModelTrainingParams(
-                main_scoring_criteria=self.main_scoring_criteria_entry.get(),
-                number_of_folds_kfold=int(self.number_of_folds_entry.get())
+                main_scoring_criteria=main_scoring_criteria,
+                number_of_folds_kfold=int(number_of_folds)
             )
 
             # Create a dictionary to save all configurations
@@ -170,6 +184,9 @@ class DataclassConfigurationApp:
                 "model_training": vars(model_training_params)
             }
 
+            # Ensure configurations directory exists
+            os.makedirs('configurations', exist_ok=True)
+
             # Save to a JSON file
             with open('configurations/project_configurations.json', 'w') as f:
                 json.dump(config_dict, f, indent=4)
@@ -178,6 +195,36 @@ class DataclassConfigurationApp:
                     
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save configurations: {str(e)}")
+
+
+def validate_numerical_tolerance(value):
+    """Validate numerical tolerance is between 0 and 3."""
+    try:
+        float_value = float(value)
+        return 0 <= float_value <= 3
+    except ValueError:
+        return False
+
+def validate_categorical_tolerance(value):
+    """Validate categorical tolerance is between 0 and 1."""
+    try:
+        float_value = float(value)
+        return 0 <= float_value <= 1
+    except ValueError:
+        return False
+
+def validate_main_scoring_criteria(value):
+    """Validate main scoring criteria is one of the allowed values."""
+    allowed_criteria = ['r2_score', 'mae', 'rmse', 'mse']
+    return value in allowed_criteria
+
+def validate_number_of_folds(value):
+    """Validate number of folds is between 5 and 1000."""
+    try:
+        int_value = int(value)
+        return 5 <= int_value <= 1000
+    except ValueError:
+        return False
 
 def main():
     root = tk.Tk()
