@@ -1,11 +1,13 @@
 import os, sys
 from src.utils import logger_obj,CustomException
-from src.entities import DataIngestionConfig, DataIngestionArtifacts
+from src.entities import DataIngestionArtifacts
 import pandas as pd
+from configurations import pipeline_config_obj
+
 
 class DataIngestion:
     def __init__(self):
-        self.data_ingestion_config= DataIngestionConfig()
+        self.data_ingestion_config= pipeline_config_obj.data_ingestion
         self.data_ingestion_artifacts = DataIngestionArtifacts()
 
         try:

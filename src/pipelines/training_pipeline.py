@@ -20,8 +20,8 @@ def run_training_pipeline():
         data_ingestion_obj.perform_data_ingestion_csv_files()
         # e_mail_obj.send_email(e_mail_messages.data_ingestion_success_email_subject, e_mail_messages.data_ingestion_success_message)
         logger_obj.info(f"{'*'*5}Successfully ran the Data Ingestion Step{'*'*5}")
-
-    except Exception as e:
+ 
+    except Exception as e: 
         # e_mail_obj.send_email(e_mail_messages.data_ingestion_error_email_subject, e_mail_messages.data_ingestion_error_message)
         logger_obj.exception(f"Exception During Data Ingestion Step\n:{e}")
         raise CustomException(e ,sys)

@@ -1,17 +1,19 @@
 import os, sys
 from src.utils import logger_obj, CustomException
-from src.entities import DataValidationArtifacts, DataIngestionArtifacts, DataValidationConfig
+from src.entities import DataValidationArtifacts, DataIngestionArtifacts
 import pandas as pd
 import pandera as pa
 from schemas.data_structure import data_frame_schema
 import json
+from configurations import pipeline_config_obj
+
 
 
 class DataValidation:
     def __init__(self):
         self.data_ingestion_artifacts = DataIngestionArtifacts()
         self.data_validation_artifacts = DataValidationArtifacts()
-        self.data_validation_config = DataValidationConfig()
+        self.data_validation_config = pipeline_config_obj.data_validation
 
         try:
             logger_obj.info(f"Creating the data_validation folder")

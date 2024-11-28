@@ -1,6 +1,6 @@
 import os, sys
 from src.utils import logger_obj,CustomException
-from src.entities import DataValidationArtifacts, DataPreprocessingArtifacts, FeatureDefinition
+from src.entities import DataValidationArtifacts, DataPreprocessingArtifacts
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import pandas as pd
@@ -9,15 +9,18 @@ from sklearn.preprocessing import  OneHotEncoder, OrdinalEncoder, FunctionTransf
 from sklearn.pipeline import Pipeline
 import joblib
 import numpy as np
+from configurations import pipeline_config_obj
+
 
 # TODO comment, typing suggestion, logging
+
 
 
 class DataPreprocessing:
     def __init__(self):
         self.data_validation_artifacts = DataValidationArtifacts()
         self.data_preprocessing_artifacts = DataPreprocessingArtifacts()
-        self.feature_definition = FeatureDefinition()
+        self.feature_definition = pipeline_config_obj.feature_definition
 
         try:
             logger_obj.info(f"Creating the data_preprocessing folder")

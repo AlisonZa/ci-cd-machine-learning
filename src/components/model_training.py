@@ -1,6 +1,6 @@
 import os, sys
 from src.utils import logger_obj,CustomException
-from src.entities import DataPreprocessingArtifacts, ModelTrainingArtifacts, ModelTrainingParams
+from src.entities import DataPreprocessingArtifacts, ModelTrainingArtifacts
 import pandas as pd
 import pandas as pd
 import numpy as np
@@ -34,6 +34,8 @@ import mlflow
 import mlflow.sklearn
 import numpy as np
 from datetime import datetime
+from configurations import pipeline_config_obj
+
 
 
 warnings.filterwarnings("ignore")
@@ -43,7 +45,7 @@ class ModelTraining:
     def __init__(self):
         self.model_preprocessing_artifacts= DataPreprocessingArtifacts()
         self.model_training_artifacts = ModelTrainingArtifacts()
-        self.model_training_params = ModelTrainingParams()
+        self.model_training_params = pipeline_config_obj.model_training
 
         try:
             logger_obj.info(f"Creating the model_training folder")
