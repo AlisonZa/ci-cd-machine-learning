@@ -10,7 +10,7 @@ from datetime import datetime
 import mlflow
 import mlflow.sklearn
 
-from src.utils import logger_obj, CustomException
+from src.utils import logger_obj, CustomException, e_mail_obj
 from configurations import pipeline_config_obj
 
 from src.entities import DataPreprocessingArtifacts, ModelTrainingArtifacts
@@ -23,6 +23,10 @@ from sklearn.ensemble import RandomForestRegressor, AdaBoostRegressor
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from catboost import CatBoostRegressor
 from xgboost import XGBRegressor
+
+from src.entities import EmailMessages
+e_mail_messages = EmailMessages()
+
 
 warnings.filterwarnings("ignore")
 
@@ -206,9 +210,11 @@ class ModelTraining:
         logger_obj.info(f"Sorting results by {scoring_criteria}.")
         if scoring_criteria == 'r2_score':
             results_df = results_df.sort_values(by='R2 Score', ascending=False)
+            best_score_value = results_df['R2 Score'].iloc[0]
         else:
             metric_name = scoring_criteria.upper()
             results_df = results_df.sort_values(by=metric_name, ascending=True)
+            best_score_value = results_df[metric_name].iloc[0]
         
         # Get the best overall model
         best_model_idx = results_df.index[0]
@@ -220,6 +226,10 @@ class ModelTraining:
         self.model_training_artifacts.best_models = best_models
         self.model_training_artifacts.results = results_df
         self.model_training_artifacts.best_model_overall = best_model_overall
+        self.model_training_artifacts.best_score_value = best_score_value  # Save the best score value
+        
+        # Optional: log the best score for clarity
+        logger_obj.info(f"Best scoring criteria: {scoring_criteria} with score value: {best_score_value}")
 
 
     def save_results(self):
@@ -435,11 +445,37 @@ class ModelTraining:
         self.model_training_artifacts.results = results_df 
         self.model_training_artifacts.best_model_overall = best_model_overall
 
+    def approve_model(self):
 
+        # Get the scorer (the metrics or model evaluation results)        
+        main_scoring_criteria = self.get_scorer()
+        best_model_performance = self.model_training_artifacts.best_score_value
+        minimal_performance = self.model_training_artifacts.minimal_performance
+        logger_obj.info(f"Entering the step of approving the model")
+        logger_obj.info(f"main_scoring_criteria: {main_scoring_criteria}, best_model_performance: {best_model_performance}, minimal_performance: {minimal_performance}")
+
+        if main_scoring_criteria == 'r2':
+            if best_model_performance >= minimal_performance:
+                logger_obj.info(f"Model achieved the minimum expected performance with R2: {best_model_performance}")
+            else:
+                logger_obj.error(f"Model performance under the minimum (R2: {best_model_performance})\nEnding pipeline...") 
+                e_mail_obj.send_email(e_mail_messages.model_approval_error_email_subject, e_mail_messages.model_approval_error_message)
+                sys.exit(1)  
+
+        else:
+            if best_model_performance <= minimal_performance:
+                logger_obj.info(f"Model achieved the minimum expected error (performance: {best_model_performance})")
+            else:
+                logger_obj.error(f"Model performance under the minimum (error: {best_model_performance})\nEnding pipeline...")
+                e_mail_obj.send_email(e_mail_messages.model_approval_error_email_subject, e_mail_messages.model_approval_error_message)
+                sys.exit(1)
+
+  
     def run_model_training_and_evaluation(self):
         try:
             # self.train_and_evaluate_models_cv_regression_mlflow() # Uncomment if you want to track in MLflow
             self.train_and_evaluate_models_cv_regression() # Comment if you want to track changes in MLFlow
+            self.approve_model() # comment this if running train_and_evaluate_models_cv_regression_mlflow, it still does not support 
             self.save_results()
             self.save_best_models()
             self.save_best_model_overall()

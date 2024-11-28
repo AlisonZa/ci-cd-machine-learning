@@ -24,7 +24,7 @@
         ]
     },
     "model_training": {
-        "main_scoring_criteria": "mae",
+        "main_scoring_criteria": "r2_score",
         "number_of_folds_kfold": 5
     }
 }

@@ -13,52 +13,6 @@ class EmailMessages:
     of a data pipeline. It provides predefined email content for both success and 
     error scenarios during different pipeline stages, including data ingestion, 
     validation, preprocessing, model training, and the overall model training pipeline.
-
-    Attributes:
-        data_ingestion_error_email_subject (str): Subject line for emails 
-            notifying errors during the data ingestion stage.
-        data_ingestion_success_email_subject (str): Subject line for emails 
-            notifying successful completion of the data ingestion stage.
-        data_ingestion_error_message (str): Email body for errors encountered 
-            during data ingestion.
-        data_ingestion_success_message (str): Email body for successful 
-            completion of data ingestion.
-
-        data_validation_error_email_subject (str): Subject line for emails 
-            notifying errors during the data validation stage.
-        data_validation_success_email_subject (str): Subject line for emails 
-            notifying successful completion of the data validation stage.
-        data_validation_error_message (str): Email body for errors encountered 
-            during data validation.
-        data_validation_success_message (str): Email body for successful 
-            completion of data validation.
-
-        data_preprocessing_error_email_subject (str): Subject line for emails 
-            notifying errors during the data preprocessing stage.
-        data_preprocessing_success_email_subject (str): Subject line for emails 
-            notifying successful completion of the data preprocessing stage.
-        data_preprocessing_error_message (str): Email body for errors encountered 
-            during data preprocessing.
-        data_preprocessing_success_message (str): Email body for successful 
-            completion of data preprocessing.
-
-        model_trainining_error_email_subject (str): Subject line for emails 
-            notifying errors during the model training stage.
-        model_trainining_success_email_subject (str): Subject line for emails 
-            notifying successful completion of the model training stage.
-        model_trainining_error_message (str): Email body for errors encountered 
-            during model training.
-        model_trainining_success_message (str): Email body for successful 
-            completion of model training.
-
-        model_training_pipeline_error_email_subject (str): Subject line for emails 
-            notifying errors during the overall model training pipeline.
-        model_training_pipeline_success_email_subject (str): Subject line for emails 
-            notifying successful completion of the model training pipeline.
-        model_training_pipeline_error_message (str): Email body for errors encountered 
-            during the model training pipeline.
-        model_training_pipeline_success_message (str): Email body for successful 
-            completion of the model training pipeline.
     """
 
     data_ingestion_error_email_subject: str = f"""Error Data Ingestion"""
@@ -76,17 +30,13 @@ class EmailMessages:
     data_preprocessing_error_message: str = f"""Error during Data Preprocessing, please check the logs"""
     data_preprocessing_success_message: str = f"""Successfully performed Data Preprocessing, starting next step"""
 
-    model_trainining_error_email_subject: str = f"""Error Model Training"""
-    model_trainining_success_email_subject: str = f"""Model Training Completed"""
-    model_trainining_error_message: str = f"""Error during Model Training, please check the logs"""
-    model_trainining_success_message: str = f"""Successfully performed Model Training, starting next step"""
+    model_training_error_email_subject: str = f"""Error Model Training"""
+    model_training_success_email_subject: str = f"""Model Training Completed"""
+    model_training_error_message: str = f"""Error during Model Training, please check the logs"""
+    model_training_success_message: str = f"""Successfully performed Model Training, starting next step"""
 
-    model_training_pipeline_error_email_subject: str = f"""Error Model Training Pipeline"""
-    model_training_pipeline_success_email_subject: str = f"""Model Training Pipeline Completed"""
-    model_training_pipeline_error_message: str = f"""Error during Model Training Pipeline, please check the logs"""
-    model_training_pipeline_success_message: str = f"""Successfully performed Model Training Pipeline, starting next step"""
-
-
+    model_approval_error_email_subject: str = f"""Error Model approval"""
+    model_approval_error_message: str = f"""Error during Model approval, Model did not achieve the minimum performance, please check the logs"""
 
 #### Training pipeline:###############################################################################################################
 
@@ -188,6 +138,9 @@ class ModelTrainingArtifacts:
         best_models: A collection or list of the best models trained during the 
             process.
         results: Training results or metrics (e.g., scores, performance evaluations).
+        best_score_value: The best model performance according to the scoring criteria
+        minimal_preformance: The minimal performance to approve the model, pay attention, because some metrics can be maximized while other minimized
+
     """
     model_training_root_folder: str = os.path.join("artifacts", "model_training")  # Creates the step folder
     best_models_folder = os.path.join(model_training_root_folder, "best_models")
@@ -197,6 +150,11 @@ class ModelTrainingArtifacts:
     best_model_overall = None
     best_models = None
     results = None
+    best_score_value:float = None
+    
+    # TODO move it to the configurator, so the user can manage it
+    minimal_performance:float = 0.80 # 80% of r2_score
+
 
 
 ########### Prediction Pipeline: ##############################################################################################################
