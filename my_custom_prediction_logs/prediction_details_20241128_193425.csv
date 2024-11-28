@@ -1,0 +1,2 @@
+timestamp,gender,race_ethnicity,parental_level_of_education,lunch,test_preparation_course,reading_score,writing_score,prediction,confidence
+2024-11-28T19:34:27.745379,female,group B,some college,standard,completed,75,80,68.73032689318428,68.73032689318428
