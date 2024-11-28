@@ -12,3 +12,80 @@ stages:
       hash: md5
       md5: ce689f302060118e9582e8b6d09b6198
       size: 57021
+  data_validation:
+    cmd: python -m src.components.data_validation
+    deps:
+    - path: artifacts/data_ingestion/students.csv
+      hash: md5
+      md5: ce689f302060118e9582e8b6d09b6198
+      size: 57021
+    - path: schemas/reference_stats.json
+      hash: md5
+      md5: bf7f4d128c73c58d94b3e840b2893320
+      size: 903
+    outs:
+    - path: artifacts/data_validation/validated_data.csv
+      hash: md5
+      md5: 4ef9dd11c84e883a1498e84bed2f2e7d
+      size: 60912
+  data_preprocessing:
+    cmd: python -m src.components.data_preprocessing
+    deps:
+    - path: artifacts/data_validation/validated_data.csv
+      hash: md5
+      md5: 4ef9dd11c84e883a1498e84bed2f2e7d
+      size: 60912
+    outs:
+    - path: artifacts/data_preprocessing/preprocessed_data/X_test_transformed.npy
+      hash: md5
+      md5: dd647a36123683a6138f09933fe560d7
+      size: 16128
+    - path: artifacts/data_preprocessing/preprocessed_data/X_train_transformed.npy
+      hash: md5
+      md5: 4372d9641a3e8208a7ce479a09b8472f
+      size: 64128
+    - path: artifacts/data_preprocessing/preprocessed_data/y_test_transformed.npy
+      hash: md5
+      md5: 410eaf805a055d1cf1f9277e27d671af
+      size: 1728
+    - path: artifacts/data_preprocessing/preprocessed_data/y_train.npy
+      hash: md5
+      md5: b7bd10880f37171856b53e8e76c65a89
+      size: 6528
+    - path: artifacts/data_preprocessing/trained_preprocessor.pkl
+      hash: md5
+      md5: 9171ac52cc7a6746bef0eecaa255ca9a
+      size: 5400
+  model_training:
+    cmd: python -m src.components.model_training
+    deps:
+    - path: artifacts/data_preprocessing/preprocessed_data/X_test_transformed.npy
+      hash: md5
+      md5: dd647a36123683a6138f09933fe560d7
+      size: 16128
+    - path: artifacts/data_preprocessing/preprocessed_data/X_train_transformed.npy
+      hash: md5
+      md5: 4372d9641a3e8208a7ce479a09b8472f
+      size: 64128
+    - path: artifacts/data_preprocessing/preprocessed_data/y_test_transformed.npy
+      hash: md5
+      md5: 410eaf805a055d1cf1f9277e27d671af
+      size: 1728
+    - path: artifacts/data_preprocessing/preprocessed_data/y_train.npy
+      hash: md5
+      md5: b7bd10880f37171856b53e8e76c65a89
+      size: 6528
+    outs:
+    - path: artifacts/model_training/best_model.joblib
+      hash: md5
+      md5: d730a03a9c6bb92e6fbb6e57dfec94ef
+      size: 711
+    - path: artifacts/model_training/best_models/
+      hash: md5
+      md5: eb8ed6f942bc310ef833cd2ea52be6f0.dir
+      size: 2335985
+      nfiles: 9
+    - path: artifacts/model_training/results.xlsx
+      hash: md5
+      md5: 2217e7a1fee004e0225414c737cbd835
+      size: 6084
