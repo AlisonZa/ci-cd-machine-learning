@@ -10,6 +10,7 @@ import os
 import pandas as pd
 import numpy as np
 
+
 # Modelling
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.neighbors import KNeighborsRegressor
@@ -32,6 +33,7 @@ import os
 import mlflow
 import mlflow.sklearn
 import numpy as np
+from datetime import datetime
 
 
 warnings.filterwarnings("ignore")
@@ -202,62 +204,154 @@ class ModelTraining:
         joblib.dump(model, self.model_training_artifacts.best_model_overall_path)
 
 
-    def log_to_mlflow(self):
+    def train_and_evaluate_models_cv_regression_mlflow(self, 
+                                  models_with_hyperparameters = [
+                                    (LinearRegression(), {'fit_intercept': [True, False]}),                                    
+                                    (Lasso(random_state=42), {'alpha': [0.1, 1, 10], 'fit_intercept': [True, False]}),                                    
+                                    (Ridge(random_state=42), {'alpha': [0.1, 1, 10], 'fit_intercept': [True, False]}),                                    
+                                    (KNeighborsRegressor(), {'n_neighbors': [3, 5, 7, 10], 'weights': ['uniform', 'distance'], 'algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute']}),                                    
+                                    (DecisionTreeRegressor(random_state=42), {'max_depth': [None, 5, 10], 'min_samples_split': [2, 5, 10], 'min_samples_leaf': [1, 2, 5]}),                                    
+                                    (RandomForestRegressor(random_state=42), {'n_estimators': [50, 100], 'max_depth': [None, 10], 'min_samples_split': [2, 5, 10], 'min_samples_leaf': [1, 2, 5]}),                                    
+                                    (XGBRegressor(random_state=42), {'n_estimators': [50, 100], 'learning_rate': [0.01, 0.1], 'max_depth': [3, 5, 7], 'subsample': [0.8, 1.0]}),                                    
+                                    (CatBoostRegressor(random_state=42, verbose=False), {'iterations': [500, 1000], 'depth': [3, 5, 7], 'learning_rate': [0.01, 0.1], 'l2_leaf_reg': [1, 3, 5]}),                                    
+                                    (AdaBoostRegressor(random_state=42), {'n_estimators': [50, 100], 'learning_rate': [0.01, 0.1, 0.5]})]
+                                  ):
         """
-        Logs training artifacts (best model, other models, and results) to MLflow.
+        Evaluate multiple models using k-fold cross-validation with MLflow tracking.
         
-        This function loads environment variables from a `.env` file, sets up the 
-        connection to the MLflow server using those variables, and logs the 
-        artifacts from the model training process, such as the best model and 
-        related files like results.
+        This method:
+        1. Loads pre-transformed data
+        2. Performs grid search cross-validation for multiple models
+        3. Tracks model performance metrics with MLflow
+        4. Saves best models and results
         
-        Environment variables:
-        - MLFLOW_TRACKING_URI: URI for the MLflow tracking server.
-        - MLFLOW_TRACKING_USERNAME: Username for MLflow server authentication.
-        - MLFLOW_TRACKING_PASSWORD: Password for MLflow server authentication.
+        Parameters:
+        -----------
+        models_with_hyperparameters : list of tuples
+            List of (model, hyperparameters) to evaluate
         """
+        # Load the data
+        X_train_transformed = np.load(self.model_preprocessing_artifacts.X_train_transformed_path)
+        X_test_transformed = np.load(self.model_preprocessing_artifacts.X_test_transformed_path)
+        y_train = np.load(self.model_preprocessing_artifacts.y_train_path)
+        y_test = np.load(self.model_preprocessing_artifacts.y_test_path)
         
-        try:
-            # Load environment variables
-            load_dotenv()
-            
-            mlflow.set_tracking_uri(os.getenv('MLFLOW_TRACKING_URI'))
-            mlflow.set_experiment('Students Regression Model Training')  # Optionally, you can set a specific experiment name
-            
-            # Getting all the names of the files in the best_models foder
-            file_names = self.get_files_in_folder(self.model_training_artifacts.best_models_folder)
+        k = self.model_training_params.number_of_folds_kfold
+        scoring_criteria = self.model_training_params.main_scoring_criteria 
+        random_state = 42
 
-            with mlflow.start_run():
-                # Log the best overall model
-                for file_name in file_names:
-
-                    file_path = os.path.join(self.model_training_artifacts.best_models_folder, file_name)
-                    mlflow.log_artifact(file_path)
-                    
+        # Initialize variables
+        best_models = []
+        results = []
+        
+        # Set up cross-validation
+        kf = KFold(n_splits=k, shuffle=True, random_state=random_state)
+        
+        # Get appropriate scorer for GridSearchCV
+        scorer = self.get_scorer()
+        
+        # MLflow setup with unique experiment name
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        experiment_name = f"Model_Comparison_{timestamp}"
+        
+        # Set tracking URI and create experiment
+        mlflow.set_tracking_uri(os.getenv('MLFLOW_TRACKING_URI'))
+        mlflow.create_experiment(experiment_name)
+        mlflow.set_experiment(experiment_name)
+        
+        for model, hyperparameters in models_with_hyperparameters:
+            # Start an MLflow run for each model
+            with mlflow.start_run(nested=True):
+                print(f"Evaluating {model.__class__.__name__}...")
                 
-                # Log the results file
-                results_file_path = os.path.join(self.model_training_artifacts.model_training_root_folder, "results.xlsx")
-                mlflow.log_artifact(results_file_path)
+                # MLflow log model name
+                mlflow.set_tag('model_name', model.__class__.__name__)
                 
-                print("Artifacts logged successfully.")
-                mlflow.end_run()
+                # Add random_state if applicable
+                if hasattr(model, 'random_state'):
+                    hyperparameters['random_state'] = [random_state]
+                
+                # Perform Grid Search with cross-validation
+                grid_search = GridSearchCV(
+                    estimator=model,
+                    param_grid=hyperparameters,
+                    cv=kf,
+                    n_jobs=-1,
+                    scoring=scorer,
+                    error_score='raise'
+                )
+                
+                # Fit the grid search
+                grid_search.fit(X_train_transformed, y_train)
+                
+                # Get best model
+                best_model = grid_search.best_estimator_
+                
+                # Make predictions
+                y_pred = best_model.predict(X_test_transformed)
+                
+                # Calculate metrics
+                r2 = r2_score(y_test, y_pred)
+                mae = mean_absolute_error(y_test, y_pred)
+                rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+                mse = mean_squared_error(y_test, y_pred)
+                cv_score = -grid_search.best_score_ if 'neg_' in scorer else grid_search.best_score_
+                
+                # Log metrics to MLflow
+                mlflow.log_params(grid_search.best_params_)
+                mlflow.log_metrics({
+                    'r2_score': r2,
+                    'mean_absolute_error': mae,
+                    'root_mean_squared_error': rmse,
+                    'mean_squared_error': mse,
+                    'cross_validation_score': cv_score
+                })
+                
+                # Log the model
+                mlflow.sklearn.log_model(best_model, f"{model.__class__.__name__}_best_model")
+                
+                # Prepare performance dictionary
+                performance = {
+                    'Model': model.__class__.__name__,
+                    'Best Hyperparameters': grid_search.best_params_,
+                    'R2 Score': r2,
+                    'MAE': mae,
+                    'RMSE': rmse,
+                    'MSE': mse,
+                    'CV Score': cv_score
+                }
+                
+                results.append(performance)
+                best_models.append(best_model)
+        
+        # Create results DataFrame
+        results_df = pd.DataFrame(results)
+        
+        # Sort results based on scoring criteria
+        if scoring_criteria == 'r2_score':
+            results_df = results_df.sort_values(by='R2 Score', ascending=False)
+        else:
+            metric_name = scoring_criteria.upper()
+            results_df = results_df.sort_values(by=metric_name, ascending=True)
+        
+        # Get best overall model
+        best_model_idx = results_df.index[0]
+        best_model_overall = best_models[best_model_idx]
+        
+        print("Evaluation Complete.")
+         
+        self.model_training_artifacts.best_models = best_models 
+        self.model_training_artifacts.results = results_df 
+        self.model_training_artifacts.best_model_overall = best_model_overall
 
-        except Exception as e:
-            print(f"Error logging to MLflow: {e}")
-
-    # TODO move to utils
-    def get_files_in_folder(self, folder_path):
-        # Get all files in the folder
-        files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
-        return files
 
     def run_model_training_and_evaluation(self):
         try:
-            self.train_and_evaluate_models_cv_regression()
+            # self.train_and_evaluate_models_cv_regression_mlflow() # Uncomment if you want to track in MLflow
+            self.train_and_evaluate_models_cv_regression() # Comment if you want to track changes in MLFlow
             self.save_results()
             self.save_best_models()
             self.save_best_model_overall()
-            self.log_to_mlflow()
   
 
         except Exception as e:
