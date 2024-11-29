@@ -1,0 +1,1 @@
+2024-11-28 22:03:58,714 - INFO: Prediction: Input=PredictionInput(gender='male', race_ethnicity='group B', parental_level_of_education="bachelor's degree", lunch='free/reduced', test_preparation_course='none', reading_score=95, writing_score=100), Prediction=98.89395204852892

@@ -1,1 +1,0 @@
-2024-11-28 19:33:24,553 - INFO: Prediction: Input=PredictionInput(gender='female', race_ethnicity='group B', parental_level_of_education='some college', lunch='standard', test_preparation_course='completed', reading_score=75, writing_score=80), Prediction=68.73032689318428

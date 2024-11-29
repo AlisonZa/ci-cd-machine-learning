@@ -6,11 +6,38 @@ import pandas as pd
 import os
 import logging
 from datetime import datetime
+import os
+import logging
+from typing import Dict, Any, List, Union
+from datetime import datetime
+from dotenv import load_dotenv
+load_dotenv()
+import psycopg2
+import os
+import logging
+from datetime import datetime
+from typing import List
+
+import pandas as pd
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float
+from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.exc import SQLAlchemyError
+
+
+
+import pandas as pd
+import sqlalchemy
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+from src.entities import PredictionInput, PredictionOutput, ModelTrainingArtifacts, DataPreprocessingArtifacts
+
 
 
 class PredictionLogger:
     """
-    A utility class to log model inputs and predictions
+    A utility class to log model inputs and predictions, locally
     """
     def __init__(self, log_dir='prediction_logs'):
         """
@@ -73,7 +100,7 @@ class PredictionLogger:
                 'reading_score': inp.reading_score,
                 'writing_score': inp.writing_score,
                 'prediction': pred.prediction,
-                'confidence': max(pred.probabilities.values()) if pred.probabilities else None
+                # 'confidence': max(pred.probabilities.values()) if pred.probabilities else None # just for regression
             }
             log_data.append(log_entry)
             
@@ -91,14 +118,19 @@ class PredictionLogger:
 
 
 
+############################### SQL Monitoring
+# Create a base class for declarative models
+
+
+################################################################################################################################################################
 
 class RegressionComponent:
-    def __init__(self, logger: PredictionLogger = None):
+    def __init__(self, logger = None):
         """
-        Initialize RegressionComponent with optional logger
+        Initialize RegressionComponent with optional database logger
         
         Args:
-            logger (PredictionLogger, optional): Logger to track predictions
+            logger (DatabasePredictionLogger, optional): Logger to track predictions
         """
         # Model loading
         self.model = None
@@ -111,7 +143,7 @@ class RegressionComponent:
         self.load_preprocessor()
         
         # Prediction logger
-        self.prediction_logger = logger or PredictionLogger()
+        self.prediction_logger = logger or DatabasePredictionLogger()
 
     def load_model(self):
         """

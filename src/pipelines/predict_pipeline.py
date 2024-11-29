@@ -3,7 +3,9 @@ from src.components.prediction import RegressionComponent, PredictionLogger
 import pandas as pd
 import os
 
-def predict_pipeline(input_data: PredictionInput, logger: PredictionLogger = None) -> PredictionOutput:
+logger = PredictionLogger() # Change it to PredictionLogger if you want just the local
+
+def predict_pipeline(input_data: PredictionInput, logger = logger) -> PredictionOutput:
     """
     Simple prediction pipeline function with optional logging
     
@@ -22,7 +24,7 @@ def predict_pipeline(input_data: PredictionInput, logger: PredictionLogger = Non
     
     return prediction_result
 
-def batch_predict_pipeline(input_file: str, output_file: str, logger: PredictionLogger = None):
+def batch_predict_pipeline(input_file: str, output_file: str, logger = logger):
     """
     Batch prediction pipeline to handle multiple input rows with logging.
 
@@ -31,10 +33,7 @@ def batch_predict_pipeline(input_file: str, output_file: str, logger: Prediction
         output_file (str): Path to save predictions as a CSV.
         logger (PredictionLogger, optional): Logger to track predictions
     """
-    # Create logger if not provided
-    if logger is None:
-        logger = PredictionLogger()
-    
+
     # Load input data
     input_data_df = pd.read_csv(input_file)
 
@@ -65,30 +64,26 @@ def batch_predict_pipeline(input_file: str, output_file: str, logger: Prediction
 
 
 # Entrypoint:
-if __name__ == "__main__":
+# if __name__ == "__main__":
     
-    # Optional: Create a custom logger with a specific log directory
-    custom_logger = PredictionLogger(log_dir='my_custom_prediction_logs')
+    # # Optional: Create a custom logger with a specific log directory
+    # custom_logger = PredictionLogger(log_dir='my_custom_prediction_logs')
     
-    # Single prediction with logging
-    input_data = PredictionInput(
-        gender='female',
-        race_ethnicity='group B',
-        parental_level_of_education='some college',
-        lunch='standard',
-        test_preparation_course='completed',
-        reading_score=75,
-        writing_score=80
-    )
+    # # Single prediction with logging
+    # input_data = PredictionInput(
+    #     gender='female',
+    #     race_ethnicity='group B',
+    #     parental_level_of_education='some college',
+    #     lunch='standard',
+    #     test_preparation_course='completed',
+    #     reading_score=75,
+    #     writing_score=80
+    # )
 
-    prediction_result = predict_pipeline(input_data, logger=custom_logger)
-    print(prediction_result[0].prediction)
+    # prediction_result = predict_pipeline(input_data, logger=custom_logger)
+    # print(prediction_result[0].prediction)
 
     # Batch prediction with logging
     # input_file = os.path.join("batch_prediction", "x_input.csv")
     # output_file = os.path.join("batch_prediction", "y_pred.csv")
     # batch_predict_pipeline(input_file, output_file, logger=custom_logger)
-
-
-
-    
