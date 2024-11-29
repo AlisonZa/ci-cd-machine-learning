@@ -7,6 +7,8 @@ import os
 import logging
 from datetime import datetime
 import os
+from typing import Union, List
+
 import logging
 from typing import Dict, Any, List, Union
 from datetime import datetime
@@ -17,13 +19,18 @@ import os
 import logging
 from datetime import datetime
 from typing import List
+import os
+from sqlalchemy import create_engine
+from sqlalchemy.exc import SQLAlchemyError, OperationalError
+from dotenv import load_dotenv
+import boto3
 
 import pandas as pd
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.exc import SQLAlchemyError
 
-
+import numpy as np
 
 import pandas as pd
 import sqlalchemy
@@ -33,63 +40,63 @@ from sqlalchemy.orm import sessionmaker
 
 from src.entities import PredictionInput, PredictionOutput, ModelTrainingArtifacts, DataPreprocessingArtifacts
 
+# Database credentials from .env
+DB_HOST = os.getenv("DB_HOST")
+DB_NAME = os.getenv("DB_NAME")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_PORT = os.getenv("DB_PORT")
 
+import os
+from datetime import datetime
+from src.entities import PredictionInput
 
-class PredictionLogger:
-    """
-    A utility class to log model inputs and predictions, locally
-    """
+class PredictionLoggerLocal:
     def __init__(self, log_dir='prediction_logs'):
         """
-        Initialize the prediction logger
+        Initialize the local prediction logger.
         
         Args:
-            log_dir (str): Directory to store prediction logs
-        """
+            log_dir (str, optional): Directory to store prediction log files. 
+                                     Defaults to 'prediction_logs'.
+        """ 
+        # Create log directory if it doesn't exist
         self.log_dir = log_dir
-        os.makedirs(log_dir, exist_ok=True)
-        
-        # Configure logging
-        self.logger = logging.getLogger('prediction_logger')
-        self.logger.setLevel(logging.INFO)
-        
-        # Create file handler
-        log_file = os.path.join(log_dir, f'predictions_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log')
-        file_handler = logging.FileHandler(log_file)
-        file_handler.setLevel(logging.INFO)
-        
-        # Create console handler
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.INFO)
-        
-        # Create formatter
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s: %(message)s')
-        file_handler.setFormatter(formatter)
-        console_handler.setFormatter(formatter)
-        
-        # Add handlers to logger
-        self.logger.addHandler(file_handler)
-        self.logger.addHandler(console_handler)
-        
-        # CSV log for detailed tracking
-        self.csv_log_file = os.path.join(log_dir, f'prediction_details_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv')
-        
-    def log_prediction(self, input_data: Union[PredictionInput, List[PredictionInput]], 
-                       predictions: List[PredictionOutput]):
+        os.makedirs(self.log_dir, exist_ok=True)
+
+    def _get_timestamp(self):
         """
-        Log predictions with input details
+        Generate a timestamp for log file naming.
+        
+        Returns:
+            str: Formatted timestamp
+        """
+        return datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    def log_prediction(self, 
+                       input_data: Union[List[PredictionInput], PredictionInput], 
+                       prediction: Union[List[PredictionOutput], PredictionOutput]):
+        """
+        Log a single or batch prediction to a CSV file.
         
         Args:
-            input_data (Union[PredictionInput, List[PredictionInput]]): Input features
-            predictions (List[PredictionOutput]): Prediction results
+            input_data (Union[List[PredictionInput], PredictionInput]): Input feature(s)
+            prediction (Union[List[PredictionOutput], PredictionOutput]): Prediction result(s)
         """
-        # Ensure input_data is a list
+        # Ensure inputs are lists
         if isinstance(input_data, PredictionInput):
             input_data = [input_data]
         
+        if isinstance(prediction, PredictionOutput):
+            prediction = [prediction]
+        
+        # Validate input lengths
+        if len(input_data) != len(prediction):
+            raise ValueError("Input data and prediction lists must have the same length")
+
         # Prepare log data
-        log_data = []
-        for inp, pred in zip(input_data, predictions):
+        log_entries = []
+        for inp, pred in zip(input_data, prediction):
             log_entry = {
                 'timestamp': datetime.now().isoformat(),
                 'gender': inp.gender,
@@ -99,27 +106,157 @@ class PredictionLogger:
                 'test_preparation_course': inp.test_preparation_course,
                 'reading_score': inp.reading_score,
                 'writing_score': inp.writing_score,
-                'prediction': pred.prediction,
-                # 'confidence': max(pred.probabilities.values()) if pred.probabilities else None # just for regression
+                'prediction': pred.prediction
             }
-            log_data.append(log_entry)
-            
-            # Log to text logger
-            self.logger.info(f"Prediction: Input={inp}, Prediction={pred.prediction}")
-        
-        # Save to CSV for detailed tracking
-        log_df = pd.DataFrame(log_data)
-        
-        # Append to CSV (create if not exists)
-        if not os.path.exists(self.csv_log_file):
-            log_df.to_csv(self.csv_log_file, index=False)
-        else:
-            log_df.to_csv(self.csv_log_file, mode='a', header=False, index=False)
+            log_entries.append(log_entry)
 
+        # Create DataFrame
+        log_df = pd.DataFrame(log_entries)
+
+        # Generate unique filename
+        filename = f"prediction_log_{self._get_timestamp()}.csv"
+        filepath = os.path.join(self.log_dir, filename)
+
+        # Write to CSV
+        log_df.to_csv(filepath, index=False)
+        print(f"Prediction log saved to {filepath}")
+
+        return filepath
 
 
 ############################### SQL Monitoring
 # Create a base class for declarative models
+Base = declarative_base()
+
+class PredictionLog(Base):
+    """
+    SQLAlchemy model for storing prediction logs in PostgreSQL
+    """
+    __tablename__ = 'prediction_logs'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    
+    # Input features
+    gender = Column(String)
+    race_ethnicity = Column(String)
+    parental_level_of_education = Column(String)
+    lunch = Column(String)
+    test_preparation_course = Column(String)
+    reading_score = Column(Float)
+    writing_score = Column(Float)
+    
+    # Prediction result
+    prediction = Column(Float)
+
+# Database Logger Class ######################################
+class DatabasePredictionLogger:
+    def __init__(self):
+        # AWS RDS Postgres Connection Parameters
+        self.endpoint = os.getenv('DB_ENDPOINT')
+        self.port = os.getenv('DB_PORT', '5432')
+        self.user = os.getenv('DB_USER')
+        self.password = os.getenv('DB_PASSWORD')
+        self.region = os.getenv('DB_REGION')
+        self.dbname = os.getenv('DB_NAME')
+        
+        # Create SQLAlchemy engine
+        self.engine = self._create_sqlalchemy_engine()
+        
+        # Create a session factory
+        self.SessionLocal = sessionmaker(bind=self.engine)
+
+    def _create_sqlalchemy_engine(self):
+        """
+        Create SQLAlchemy engine with flexible authentication
+        """
+        connection_string = (
+            f"postgresql://{self.user}:{self.password}@"
+            f"{self.endpoint}:{self.port}/{self.dbname}"
+        )
+        
+        return create_engine(connection_string)
+
+    def connect(self):
+        """
+        Establish a direct psycopg2 connection with flexible authentication
+        """
+        try:
+            conn = psycopg2.connect(
+                host=self.endpoint,
+                port=self.port,
+                database=self.dbname,
+                user=self.user,
+                password=self.password
+                )
+            return conn
+        except Exception as e:
+            print(f"Database connection failed due to {e}")
+            raise
+
+    def log_prediction(self, input_data: PredictionInput, prediction: float) -> None:
+        """
+        Log prediction details to the PostgreSQL database
+        
+        Args:
+            input_data (PredictionInput): Input features used for prediction
+            prediction (float): Predicted value
+        """
+        try:
+            # Create a new session
+            session = self.SessionLocal()
+            
+            # Create a new PredictionLog record
+            prediction_log = PredictionLog(
+                # Map input features from PredictionInput to PredictionLog columns
+                gender=input_data.gender,
+                race_ethnicity=input_data.race_ethnicity,
+                parental_level_of_education=input_data.parental_level_of_education,
+                lunch=input_data.lunch,
+                test_preparation_course=input_data.test_preparation_course,
+                reading_score=input_data.reading_score,
+                writing_score=input_data.writing_score,
+                
+                # Store the prediction result
+                prediction=prediction
+            )
+            
+            # Add the record to the session
+            session.add(prediction_log)
+            
+            # Commit the transaction
+            session.commit()
+        
+        except Exception as e:
+            # Rollback the transaction in case of an error
+            session.rollback()
+            print(f"Error logging prediction: {e}")
+            # Optionally, you could log this error or raise it depending on your error handling strategy
+            raise
+        
+        finally:
+            # Always close the session
+            session.close()
+        
+
+    def execute_query(self, query):
+        """
+        Execute a raw SQL query
+        
+        :param query: SQL query to execute
+        :return: Query results
+        """
+        try:
+            conn = self.connect()
+            cur = conn.cursor()
+            cur.execute(query)
+            results = cur.fetchall()
+            cur.close()
+            conn.close()
+            return results
+        except Exception as e:
+            print(f"Query execution failed: {e}")
+            raise
 
 
 ################################################################################################################################################################
@@ -143,7 +280,7 @@ class RegressionComponent:
         self.load_preprocessor()
         
         # Prediction logger
-        self.prediction_logger = logger or DatabasePredictionLogger()
+        self.prediction_logger = logger
 
     def load_model(self):
         """
@@ -167,20 +304,13 @@ class RegressionComponent:
         except Exception as e:
             raise RuntimeError(f"Error loading preprocessor: {e}")
 
-
     def predict(self, input_data: Union[PredictionInput, List[PredictionInput]]) -> List[PredictionOutput]:
-        """
-        Make predictions using the loaded model and preprocessor for single or batch input.
-        Includes logging of inputs and predictions.
-
-        Args:
-            input_data (Union[PredictionInput, List[PredictionInput]]): Input features for prediction (single or batch).
-
-        Returns:
-            List[PredictionOutput]: List of prediction results.
-        """
+        
         if isinstance(input_data, PredictionInput):  # Single input
             input_data = [input_data]  # Convert to batch format
+            
+        if not input_data:
+            raise ValueError("Input data is empty.")
         
         # Convert input data to a list of dictionaries
         features_list = [{
@@ -199,18 +329,19 @@ class RegressionComponent:
         # Make predictions
         predictions = self.model.predict(processed_features)
         
+        # If predictions are empty or invalid, raise an error
+        if predictions is None or len(predictions) == 0:
+            raise ValueError("No predictions were returned from the model.")
+
         # Generate PredictionOutput for each row
         results = [
-            PredictionOutput(
-                prediction=pred,
-                probabilities={'predicted_value': pred}
-            ) for pred in predictions
+            PredictionOutput(prediction=pred) for pred in predictions
         ]
         
-        # Log predictions
-        self.prediction_logger.log_prediction(input_data, results)
+        # Log predictions using PredictionLogger
+        # self.prediction_logger.log_prediction(input_data, results)
         
-        return results
+        return results  # Ensure results are returned
 
 
     def _preprocess(self, features: List[Dict[str, Any]]):

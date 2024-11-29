@@ -214,11 +214,5 @@ class PredictionOutput:
 
     Attributes:
         prediction (int): The predicted value or label (e.g., target score or class).
-        probabilities (Optional[Dict[str, float]]): A dictionary of class probabilities 
-            if applicable, where keys are class labels and values are probabilities.
-        explanation (Optional[str]): An optional explanation or additional information 
-            about the prediction.
     """
     prediction: int
-    probabilities: Optional[Dict[str, float]] = None
-    explanation: Optional[str] = None

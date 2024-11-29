@@ -12,6 +12,7 @@ python-box
 pandera
 flask
 mlflow
+boto3
 
 sqlalchemy 
 psycopg2-binary

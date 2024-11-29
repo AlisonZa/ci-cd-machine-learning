@@ -1,2 +1,2 @@
 timestamp,gender,race_ethnicity,parental_level_of_education,lunch,test_preparation_course,reading_score,writing_score,prediction
-2024-11-28T22:03:58.714597,male,group B,bachelor's degree,free/reduced,none,95,100,98.89395204852892
+2024-11-29T20:35:52.064155,female,group B,associate's degree,free/reduced,completed,85,85,71.25758254669861

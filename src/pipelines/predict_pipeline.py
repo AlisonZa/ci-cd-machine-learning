@@ -1,26 +1,39 @@
 from src.entities import PredictionInput, PredictionOutput
-from src.components.prediction import RegressionComponent, PredictionLogger
+from src.components.prediction import RegressionComponent, PredictionLoggerLocal, DatabasePredictionLogger
 import pandas as pd
 import os
+from typing import Union, List
 
-logger = PredictionLogger() # Change it to PredictionLogger if you want just the local
 
-def predict_pipeline(input_data: PredictionInput, logger = logger) -> PredictionOutput:
+logger = PredictionLoggerLocal() # Change it to PredictionLogger if you want just the local
+
+def predict_pipeline(input_data: Union[PredictionInput, List[PredictionInput]], logger = logger) -> List[PredictionOutput]:
     """
     Simple prediction pipeline function with optional logging
     
     Args:
-        input_data (PredictionInput): Input features for prediction
+        input_data (Union[PredictionInput, List[PredictionInput]]): Input features for prediction
         logger (PredictionLogger, optional): Logger to track predictions
     
     Returns:
-        PredictionOutput: Prediction results
+        List[PredictionOutput]: Prediction results
     """
+    # Ensure input_data is a list
+    if isinstance(input_data, PredictionInput):
+        input_data = [input_data]
+    
     # Create regression component with optional logger
     component = RegressionComponent(logger)
     
     # Run prediction
     prediction_result = component.predict(input_data)
+    
+    # Log the prediction if logger is available
+    if logger:
+        try:
+            logger.log_prediction(input_data, prediction_result)
+        except Exception as e:
+            print(f"Logging failed: {e}")
     
     return prediction_result
 
@@ -53,6 +66,13 @@ def batch_predict_pipeline(input_file: str, output_file: str, logger = logger):
     # Create regression component and predict
     component = RegressionComponent(logger)
     prediction_results = component.predict(input_data)
+
+    # Log predictions
+    if logger:
+        try:
+            logger.log_prediction(input_data, prediction_results)
+        except Exception as e:
+            print(f"Logging failed: {e}")
 
     # Save predictions to a CSV
     predictions_df = pd.DataFrame([{

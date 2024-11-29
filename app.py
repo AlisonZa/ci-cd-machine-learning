@@ -4,6 +4,9 @@ import pandas as pd
 from src.pipelines.predict_pipeline import predict_pipeline
 from src.entities import PredictionInput
 import os
+from flask import Flask, jsonify
+from src.pipelines.training_pipeline import run_training_pipeline
+from src.utils import logger_obj, CustomException
 
 
 application = Flask(__name__)
@@ -15,7 +18,7 @@ def index():
     return render_template('index.html') 
 
 
-@app.route('/predict', methods=['GET','POST'])
+@app.route('/predict', methods=['GET', 'POST'])
 def predict_datapoint():
     if request.method == 'GET':
         return render_template('home.html')
@@ -32,13 +35,17 @@ def predict_datapoint():
         )
 
         # Use the predict_pipeline function
-        prediction_output = predict_pipeline([input_data])
-        
+        prediction_output = predict_pipeline(input_data)  # Pass input_data directly
+
         # Since it's returning a list, take the first element
         results = prediction_output[0].prediction
 
         return render_template('home.html', results=results)
     
+
+
+
+
 # Ensure a directory exists for batch predictions
 UPLOAD_FOLDER = 'batch_predictions'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -94,11 +101,6 @@ def batch_predict():
         return send_file(output_filepath, as_attachment=True)
     
     return render_template('batch_predict.html', error='Invalid file type. Please upload a CSV.')
-
-from flask import Flask, jsonify
-from src.pipelines.training_pipeline import run_training_pipeline
-from src.utils import logger_obj, CustomException
-
 
 @app.route('/train', methods=['GET','POST'])
 def train_pipeline():
