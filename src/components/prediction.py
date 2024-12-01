@@ -1,55 +1,32 @@
 import joblib
-from typing import Dict, Any
-from src.entities import PredictionInput, PredictionOutput, ModelTrainingArtifacts, DataPreprocessingArtifacts
-from typing import List, Union
-import pandas as pd
 import os
-import logging
-from datetime import datetime
-import os
-from typing import Union, List
 
 import logging
 from typing import Dict, Any, List, Union
-from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
-import psycopg2
 import os
 import logging
 from datetime import datetime
 from typing import List
 import os
-from sqlalchemy import create_engine
-from sqlalchemy.exc import SQLAlchemyError, OperationalError
 from dotenv import load_dotenv
-import boto3
 
 import pandas as pd
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float
-from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy.exc import SQLAlchemyError
-
-import numpy as np
-
-import pandas as pd
-import sqlalchemy
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-
-from src.entities import PredictionInput, PredictionOutput, ModelTrainingArtifacts, DataPreprocessingArtifacts
-
-# Database credentials from .env
-DB_HOST = os.getenv("DB_HOST")
-DB_NAME = os.getenv("DB_NAME")
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_PORT = os.getenv("DB_PORT")
-
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from dotenv import load_dotenv
 import os
 from datetime import datetime
-from src.entities import PredictionInput
+from typing import Union, List
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+from src.entities import PredictionInput, PredictionOutput, ModelTrainingArtifacts, DataPreprocessingArtifacts
 
 class PredictionLoggerLocal:
     def __init__(self, log_dir='prediction_logs'):
@@ -125,138 +102,179 @@ class PredictionLoggerLocal:
 
 
 ############################### SQL Monitoring
-# Create a base class for declarative models
-Base = declarative_base()
 
-class PredictionLog(Base):
-    """
-    SQLAlchemy model for storing prediction logs in PostgreSQL
-    """
-    __tablename__ = 'prediction_logs'
+import os
+import sys
+from datetime import datetime
+from typing import Union, List
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from dotenv import load_dotenv
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    timestamp = Column(DateTime, default=datetime.utcnow)
-    
-    # Input features
-    gender = Column(String)
-    race_ethnicity = Column(String)
-    parental_level_of_education = Column(String)
-    lunch = Column(String)
-    test_preparation_course = Column(String)
-    reading_score = Column(Float)
-    writing_score = Column(Float)
-    
-    # Prediction result
-    prediction = Column(Float)
+# Load environment variables
+load_dotenv()
 
-# Database Logger Class ######################################
 class DatabasePredictionLogger:
-    def __init__(self):
-        # AWS RDS Postgres Connection Parameters
-        self.endpoint = os.getenv('DB_ENDPOINT')
-        self.port = os.getenv('DB_PORT', '5432')
-        self.user = os.getenv('DB_USER')
-        self.password = os.getenv('DB_PASSWORD')
-        self.region = os.getenv('DB_REGION')
-        self.dbname = os.getenv('DB_NAME')
-        
-        # Create SQLAlchemy engine
-        self.engine = self._create_sqlalchemy_engine()
-        
-        # Create a session factory
-        self.SessionLocal = sessionmaker(bind=self.engine)
-
-    def _create_sqlalchemy_engine(self):
+    def __init__(self, log_table_name='prediction_logs'):
         """
-        Create SQLAlchemy engine with flexible authentication
-        """
-        connection_string = (
-            f"postgresql://{self.user}:{self.password}@"
-            f"{self.endpoint}:{self.port}/{self.dbname}"
-        )
-        
-        return create_engine(connection_string)
-
-    def connect(self):
-        """
-        Establish a direct psycopg2 connection with flexible authentication
-        """
-        try:
-            conn = psycopg2.connect(
-                host=self.endpoint,
-                port=self.port,
-                database=self.dbname,
-                user=self.user,
-                password=self.password
-                )
-            return conn
-        except Exception as e:
-            print(f"Database connection failed due to {e}")
-            raise
-
-    def log_prediction(self, input_data: PredictionInput, prediction: float) -> None:
-        """
-        Log prediction details to the PostgreSQL database
+        Initialize the database prediction logger.
         
         Args:
-            input_data (PredictionInput): Input features used for prediction
-            prediction (float): Predicted value
+            log_table_name (str, optional): Name of the database table to log predictions. 
+                                            Defaults to 'prediction_logs'.
         """
-        try:
-            # Create a new session
-            session = self.SessionLocal()
-            
-            # Create a new PredictionLog record
-            prediction_log = PredictionLog(
-                # Map input features from PredictionInput to PredictionLog columns
-                gender=input_data.gender,
-                race_ethnicity=input_data.race_ethnicity,
-                parental_level_of_education=input_data.parental_level_of_education,
-                lunch=input_data.lunch,
-                test_preparation_course=input_data.test_preparation_course,
-                reading_score=input_data.reading_score,
-                writing_score=input_data.writing_score,
-                
-                # Store the prediction result
-                prediction=prediction
-            )
-            
-            # Add the record to the session
-            session.add(prediction_log)
-            
-            # Commit the transaction
-            session.commit()
+        # Database connection parameters
+        # self.DB_NAME = os.getenv('DB_NAME')
+        self.DB_USER = os.getenv('DB_USER')
+        self.DB_PASSWORD = os.getenv('DB_PASSWORD')
+        self.DB_HOST = os.getenv('DB_ENDPOINT')
+        self.DB_PORT = os.getenv('DB_PORT')
         
-        except Exception as e:
-            # Rollback the transaction in case of an error
-            session.rollback()
-            print(f"Error logging prediction: {e}")
-            # Optionally, you could log this error or raise it depending on your error handling strategy
-            raise
+        # Table name
+        self.log_table_name = log_table_name
         
-        finally:
-            # Always close the session
-            session.close()
+        # Connection and cursor attributes
+        self.conn = None
+        self.cursor = None
         
+        # Attempt to connect to database
+        self._connect_to_database()
 
-    def execute_query(self, query):
+    def _connect_to_database(self):
         """
-        Execute a raw SQL query
+        Establish a connection to the PostgreSQL database.
+        Provides detailed error logging and connection validation.
+        """
+        # Validate all required environment variables
+        connection_params = {
+            # 'DB_NAME': self.DB_NAME,
+            'DB_USER': self.DB_USER,
+            'DB_PASSWORD': self.DB_PASSWORD,
+            'DB_HOST': self.DB_HOST,
+            'DB_PORT': self.DB_PORT
+        }
         
-        :param query: SQL query to execute
-        :return: Query results
+        # Check for missing or empty connection parameters
+        missing_params = [k for k, v in connection_params.items() if not v]
+        if missing_params:
+            error_msg = f"Missing database connection parameters: {', '.join(missing_params)}"
+            print(f"ERROR: {error_msg}")
+            return
+
+        try:
+            # Construct connection parameters dictionary
+            conn_kwargs = {
+                'user': self.DB_USER,
+                'password': self.DB_PASSWORD,
+                'host': self.DB_HOST,
+                'port': self.DB_PORT
+            }
+            
+            # Add database name if it's not None or empty
+            # if self.DB_NAME:
+            #     conn_kwargs['database'] = self.DB_NAME
+
+            # Attempt connection
+            self.conn = psycopg2.connect(**conn_kwargs)
+            self.conn.autocommit = True
+            self.cursor = self.conn.cursor(cursor_factory=RealDictCursor)
+            print("Database connection established successfully.")
+            
+            # Verify connection with a simple query
+            self.cursor.execute("SELECT 1")
+            self.cursor.fetchone()
+            
+        except psycopg2.Error as e:
+            print(f"Database Connection Error: {e}")
+            print("Detailed Connection Parameters:")
+            for k, v in conn_kwargs.items():
+                print(f"{k}: {'*' * len(str(v)) if 'password' in k.lower() else v}")
+            
+            # Optionally, you can re-raise the exception if you want it to stop execution
+            # raise
+
+    def log_prediction(self, 
+                       input_data: Union[List[PredictionInput], PredictionInput], 
+                       prediction: Union[List[PredictionOutput], PredictionOutput]):
+        """
+        Log a single or batch prediction to the database.
+        
+        Args:
+            input_data (Union[List[PredictionInput], PredictionInput]): Input feature(s)
+            prediction (Union[List[PredictionOutput], PredictionOutput]): Prediction result(s)
+        """
+        # Check if connection is established
+        if not self.conn or not self.cursor:
+            print("No active database connection. Skipping logging.")
+            return
+
+        # Ensure inputs are lists
+        if isinstance(input_data, PredictionInput):
+            input_data = [input_data]
+        
+        if isinstance(prediction, PredictionOutput):
+            prediction = [prediction]
+        
+        # Validate input lengths
+        if len(input_data) != len(prediction):
+            raise ValueError("Input data and prediction lists must have the same length")
+
+        # Prepare database entries
+        database_entries = []
+        for inp, pred in zip(input_data, prediction):
+            timestamp = datetime.now()
+            
+            # Prepare database entry
+            database_entry = (
+                timestamp,
+                inp.gender,
+                inp.race_ethnicity,
+                inp.parental_level_of_education,
+                inp.lunch,
+                inp.test_preparation_course,
+                inp.reading_score,
+                inp.writing_score,
+                pred.prediction
+            )
+            database_entries.append(database_entry)
+
+        # Insert into database
+        try:
+            insert_query = f"""
+            INSERT INTO {self.log_table_name} (
+                timestamp, gender, race_ethnicity, parental_level_of_education, 
+                lunch, test_preparation_course, reading_score, writing_score, prediction
+            ) VALUES (
+                %s, %s, %s, %s, %s, %s, %s, %s, %s
+            )
+            """
+            self.cursor.executemany(insert_query, database_entries)
+            print(f"Inserted {len(database_entries)} prediction log entries to database.")
+        except Exception as e:
+            print(f"Error inserting predictions to database: {e}")
+            # Optionally log to a file or send an alert
+
+    def close_connection(self):
+        """
+        Close the database connection.
         """
         try:
-            conn = self.connect()
-            cur = conn.cursor()
-            cur.execute(query)
-            results = cur.fetchall()
-            cur.close()
-            conn.close()
-            return results
+            if self.cursor:
+                self.cursor.close()
+            if self.conn:
+                self.conn.close()
+            print("Database connection closed.")
         except Exception as e:
-            print(f"Query execution failed: {e}")
-            raise
+            print(f"Error closing database connection: {e}")
+        finally:
+            self.cursor = None
+            self.conn = None
+
+    def __del__(self):
+        """
+        Ensure database connection is closed when object is deleted.
+        """
+        self.close_connection()
 
 
 ################################################################################################################################################################
@@ -358,3 +376,4 @@ class RegressionComponent:
         features_df = pd.DataFrame(features)  # Convert list of dicts to DataFrame
         processed_features = self.preprocessor.transform(features_df)
         return processed_features
+

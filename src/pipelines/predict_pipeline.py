@@ -5,7 +5,7 @@ import os
 from typing import Union, List
 
 
-logger = PredictionLoggerLocal() # Change it to PredictionLogger if you want just the local
+logger = DatabasePredictionLogger() # Change it to PredictionLogger if you want just the local
 
 def predict_pipeline(input_data: Union[PredictionInput, List[PredictionInput]], logger = logger) -> List[PredictionOutput]:
     """
