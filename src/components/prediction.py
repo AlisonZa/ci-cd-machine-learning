@@ -20,7 +20,7 @@ import os
 from datetime import datetime
 from typing import Union, List
 import psycopg2
-from psycopg2.extras import RealDictCursor
+from psycopg2.extras import RealDictCursor, execute_batch
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -124,7 +124,6 @@ class DatabasePredictionLogger:
                                             Defaults to 'prediction_logs'.
         """
         # Database connection parameters
-        # self.DB_NAME = os.getenv('DB_NAME')
         self.DB_USER = os.getenv('DB_USER')
         self.DB_PASSWORD = os.getenv('DB_PASSWORD')
         self.DB_HOST = os.getenv('DB_ENDPOINT')
@@ -139,40 +138,35 @@ class DatabasePredictionLogger:
         
         # Attempt to connect to database
         self._connect_to_database()
+        
+        # Create table if not exists
+        self._create_predictions_table()
 
     def _connect_to_database(self):
         """
         Establish a connection to the PostgreSQL database.
-        Provides detailed error logging and connection validation.
         """
-        # Validate all required environment variables
+        # Connection parameters
         connection_params = {
-            # 'DB_NAME': self.DB_NAME,
             'DB_USER': self.DB_USER,
             'DB_PASSWORD': self.DB_PASSWORD,
             'DB_HOST': self.DB_HOST,
             'DB_PORT': self.DB_PORT
         }
         
-        # Check for missing or empty connection parameters
+        # Check for missing parameters
         missing_params = [k for k, v in connection_params.items() if not v]
         if missing_params:
-            error_msg = f"Missing database connection parameters: {', '.join(missing_params)}"
-            print(f"ERROR: {error_msg}")
-            return
+            raise ValueError(f"Missing database connection parameters: {', '.join(missing_params)}")
 
         try:
-            # Construct connection parameters dictionary
+            # Construct connection parameters
             conn_kwargs = {
                 'user': self.DB_USER,
                 'password': self.DB_PASSWORD,
                 'host': self.DB_HOST,
                 'port': self.DB_PORT
             }
-            
-            # Add database name if it's not None or empty
-            # if self.DB_NAME:
-            #     conn_kwargs['database'] = self.DB_NAME
 
             # Attempt connection
             self.conn = psycopg2.connect(**conn_kwargs)
@@ -180,33 +174,58 @@ class DatabasePredictionLogger:
             self.cursor = self.conn.cursor(cursor_factory=RealDictCursor)
             print("Database connection established successfully.")
             
-            # Verify connection with a simple query
+            # Verify connection
             self.cursor.execute("SELECT 1")
             self.cursor.fetchone()
             
         except psycopg2.Error as e:
             print(f"Database Connection Error: {e}")
-            print("Detailed Connection Parameters:")
-            for k, v in conn_kwargs.items():
-                print(f"{k}: {'*' * len(str(v)) if 'password' in k.lower() else v}")
-            
-            # Optionally, you can re-raise the exception if you want it to stop execution
-            # raise
+            raise
+
+    def _create_predictions_table(self):
+        """
+        Create predictions log table if it doesn't exist.
+        """
+        create_table_query = f"""
+        CREATE TABLE IF NOT EXISTS {self.log_table_name} (
+            id SERIAL PRIMARY KEY,
+            timestamp TIMESTAMP WITHOUT TIME ZONE,
+            gender TEXT,
+            race_ethnicity TEXT,
+            parental_level_of_education TEXT,
+            lunch TEXT,
+            test_preparation_course TEXT,
+            reading_score FLOAT,
+            writing_score FLOAT,
+            prediction FLOAT
+        )
+        """
+        try:
+            self.cursor.execute(create_table_query)
+            print(f"Table {self.log_table_name} ensured to exist.")
+        except Exception as e:
+            print(f"Error creating table: {e}")
+            raise
 
     def log_prediction(self, 
                        input_data: Union[List[PredictionInput], PredictionInput], 
-                       prediction: Union[List[PredictionOutput], PredictionOutput]):
+                       prediction: Union[List[PredictionOutput], PredictionOutput], 
+                       output_file: str = None):
         """
         Log a single or batch prediction to the database.
         
         Args:
             input_data (Union[List[PredictionInput], PredictionInput]): Input feature(s)
             prediction (Union[List[PredictionOutput], PredictionOutput]): Prediction result(s)
+            output_file (str, optional): Path to save predictions CSV
+        
+        Returns:
+            str: Path to the predictions CSV file
         """
         # Check if connection is established
         if not self.conn or not self.cursor:
             print("No active database connection. Skipping logging.")
-            return
+            return output_file
 
         # Ensure inputs are lists
         if isinstance(input_data, PredictionInput):
@@ -219,11 +238,12 @@ class DatabasePredictionLogger:
         if len(input_data) != len(prediction):
             raise ValueError("Input data and prediction lists must have the same length")
 
-        # Prepare database entries
+        # Prepare database entries and prediction DataFrame
+        timestamp = datetime.now()
         database_entries = []
+        prediction_data = []
+
         for inp, pred in zip(input_data, prediction):
-            timestamp = datetime.now()
-            
             # Prepare database entry
             database_entry = (
                 timestamp,
@@ -238,7 +258,19 @@ class DatabasePredictionLogger:
             )
             database_entries.append(database_entry)
 
-        # Insert into database
+            # Prepare prediction data for CSV
+            prediction_data.append({
+                'gender': inp.gender,
+                'race_ethnicity': inp.race_ethnicity,
+                'parental_level_of_education': inp.parental_level_of_education,
+                'lunch': inp.lunch,
+                'test_preparation_course': inp.test_preparation_course,
+                'reading_score': inp.reading_score,
+                'writing_score': inp.writing_score,
+                'prediction': int(pred.prediction)
+            })
+
+        # Insert into database using batch insert for efficiency
         try:
             insert_query = f"""
             INSERT INTO {self.log_table_name} (
@@ -248,11 +280,19 @@ class DatabasePredictionLogger:
                 %s, %s, %s, %s, %s, %s, %s, %s, %s
             )
             """
-            self.cursor.executemany(insert_query, database_entries)
+            execute_batch(self.cursor, insert_query, database_entries)
             print(f"Inserted {len(database_entries)} prediction log entries to database.")
         except Exception as e:
             print(f"Error inserting predictions to database: {e}")
-            # Optionally log to a file or send an alert
+
+        # Save predictions to CSV if output file is specified
+        if output_file:
+            predictions_df = pd.DataFrame(prediction_data)
+            predictions_df.to_csv(output_file, index=False)
+            print(f"Predictions saved to {output_file}")
+            return output_file
+
+        return None
 
     def close_connection(self):
         """

@@ -37,16 +37,7 @@ def predict_pipeline(input_data: Union[PredictionInput, List[PredictionInput]], 
     
     return prediction_result
 
-def batch_predict_pipeline(input_file: str, output_file: str, logger = logger):
-    """
-    Batch prediction pipeline to handle multiple input rows with logging.
-
-    Args:
-        input_file (str): Path to input CSV file with features.
-        output_file (str): Path to save predictions as a CSV.
-        logger (PredictionLogger, optional): Logger to track predictions
-    """
-
+def batch_predict_pipeline(input_file: str, output_file: str, logger=None):
     # Load input data
     input_data_df = pd.read_csv(input_file)
 
@@ -67,21 +58,17 @@ def batch_predict_pipeline(input_file: str, output_file: str, logger = logger):
     component = RegressionComponent(logger)
     prediction_results = component.predict(input_data)
 
-    # Log predictions
+    # Log predictions and save to CSV
     if logger:
-        try:
-            logger.log_prediction(input_data, prediction_results)
-        except Exception as e:
-            print(f"Logging failed: {e}")
+        logger.log_prediction(input_data, prediction_results, output_file)
+    else:
+        # Fallback if no logger is provided
+        predictions_df = pd.DataFrame([{
+            'prediction': int(result.prediction)
+        } for result in prediction_results])
+        predictions_df.to_csv(output_file, index=False)
 
-    # Save predictions to a CSV
-    predictions_df = pd.DataFrame([{
-        'prediction': int(result.prediction)
-    } for result in prediction_results])
-
-    predictions_df.to_csv(output_file, index=False)
     print(f"Predictions saved to {output_file}")
-
 
 # Entrypoint:
 # if __name__ == "__main__":
