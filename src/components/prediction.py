@@ -4,14 +4,13 @@ import pandas as pd
 
 from src.entities import PredictionInput, PredictionOutput, ModelTrainingArtifacts, DataPreprocessingArtifacts
 
-
 class RegressionComponent:
     def __init__(self, logger = None):
         """
         Initialize RegressionComponent with optional database logger
         
         Args:
-            logger (DatabasePredictionLogger, optional): Logger to track predictions
+            logger (optional): Logger object to track predictions
         """
         # Model loading
         self.model = None

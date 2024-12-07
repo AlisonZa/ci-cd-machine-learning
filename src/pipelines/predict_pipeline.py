@@ -5,7 +5,7 @@ from src.components.prediction_logging import PredictionLoggerLocal, DatabasePre
 import pandas as pd
 from typing import Union, List
 
-logger = DatabasePredictionLogger() # Change it to PredictionLogger if you want just the local logging
+logger = DatabasePredictionLogger() # Change it to PredictionLoggerLocal if you want just the local logging
 
 def predict_pipeline(input_data: Union[PredictionInput, List[PredictionInput]], logger = logger) -> List[PredictionOutput]:
     """
@@ -35,7 +35,7 @@ def predict_pipeline(input_data: Union[PredictionInput, List[PredictionInput]], 
         except Exception as e:
             print(f"Logging failed: {e}")
     
-    return int(prediction_result) # int to the user 
+    return prediction_result  
 
 def batch_predict_pipeline(input_file: str, output_file: str, logger=None):
     # Load input data
@@ -64,7 +64,7 @@ def batch_predict_pipeline(input_file: str, output_file: str, logger=None):
     else:
         # Fallback if no logger is provided
         predictions_df = pd.DataFrame([{
-            'prediction': int(result.prediction)
+            'prediction': result.prediction
         } for result in prediction_results])
         predictions_df.to_csv(output_file, index=False)
 

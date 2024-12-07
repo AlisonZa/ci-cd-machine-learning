@@ -143,7 +143,7 @@ class DatabasePredictionLogger:
                 'password': self.DB_PASSWORD,
                 'host': self.DB_HOST,
                 'port': self.DB_PORT,
-                'name': self.DB_NAME, # alterado
+                'dbname': self.DB_NAME, 
             }
 
             # Attempt connection
