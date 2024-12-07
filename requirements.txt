@@ -148,7 +148,6 @@ python-dateutil==2.8.2
 python-dotenv==1.0.1
 pytz==2024.2
 PyWavelets==1.7.0
-pywin32==308
 PyYAML==6.0.2
 pyzmq==26.2.0
 requests==2.32.3
