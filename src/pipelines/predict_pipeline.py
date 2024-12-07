@@ -1,11 +1,11 @@
 from src.entities import PredictionInput, PredictionOutput
-from src.components.prediction import RegressionComponent, PredictionLoggerLocal, DatabasePredictionLogger
+from src.components.prediction import RegressionComponent
+from src.components.prediction_logging import PredictionLoggerLocal, DatabasePredictionLogger
+
 import pandas as pd
-import os
 from typing import Union, List
 
-
-logger = DatabasePredictionLogger() # Change it to PredictionLogger if you want just the local
+logger = DatabasePredictionLogger() # Change it to PredictionLogger if you want just the local logging
 
 def predict_pipeline(input_data: Union[PredictionInput, List[PredictionInput]], logger = logger) -> List[PredictionOutput]:
     """
@@ -35,7 +35,7 @@ def predict_pipeline(input_data: Union[PredictionInput, List[PredictionInput]], 
         except Exception as e:
             print(f"Logging failed: {e}")
     
-    return prediction_result
+    return int(prediction_result) # int to the user 
 
 def batch_predict_pipeline(input_file: str, output_file: str, logger=None):
     # Load input data
@@ -69,28 +69,3 @@ def batch_predict_pipeline(input_file: str, output_file: str, logger=None):
         predictions_df.to_csv(output_file, index=False)
 
     print(f"Predictions saved to {output_file}")
-
-# Entrypoint:
-# if __name__ == "__main__":
-    
-    # # Optional: Create a custom logger with a specific log directory
-    # custom_logger = PredictionLogger(log_dir='my_custom_prediction_logs')
-    
-    # # Single prediction with logging
-    # input_data = PredictionInput(
-    #     gender='female',
-    #     race_ethnicity='group B',
-    #     parental_level_of_education='some college',
-    #     lunch='standard',
-    #     test_preparation_course='completed',
-    #     reading_score=75,
-    #     writing_score=80
-    # )
-
-    # prediction_result = predict_pipeline(input_data, logger=custom_logger)
-    # print(prediction_result[0].prediction)
-
-    # Batch prediction with logging
-    # input_file = os.path.join("batch_prediction", "x_input.csv")
-    # output_file = os.path.join("batch_prediction", "y_pred.csv")
-    # batch_predict_pipeline(input_file, output_file, logger=custom_logger)
