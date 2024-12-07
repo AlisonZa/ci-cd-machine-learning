@@ -17,7 +17,6 @@ app = application
 def index():
     return render_template('index.html') 
 
-
 @app.route('/predict', methods=['GET', 'POST'])
 def predict_datapoint():
     if request.method == 'GET':
@@ -102,21 +101,22 @@ def batch_predict():
     
     return render_template('batch_predict.html', error='Invalid file type. Please upload a CSV.')
 
-@app.route('/train', methods=['GET','POST'])
-def train_pipeline():
-    """
-    Endpoint to trigger the training pipeline.
-    """
-    try:
-        logger_obj.info("Training pipeline endpoint triggered.")
-        run_training_pipeline()
-        return jsonify({"message": "Training pipeline ran successfully."}), 200
-    except CustomException as ce:
-        logger_obj.error(f"CustomException occurred: {ce}")
-        return jsonify({"error": "An error occurred during the training pipeline.", "details": str(ce)}), 500
-    except Exception as e:
-        logger_obj.error(f"Unhandled exception occurred: {e}")
-        return jsonify({"error": "An unhandled error occurred.", "details": str(e)}), 500
+# Commented for deployment
+# @app.route('/train', methods=['GET','POST'])
+# def train_pipeline():
+#     """
+#     Endpoint to trigger the training pipeline.
+#     """
+#     try:
+#         logger_obj.info("Training pipeline endpoint triggered.")
+#         run_training_pipeline()
+#         return jsonify({"message": "Training pipeline ran successfully."}), 200
+#     except CustomException as ce:
+#         logger_obj.error(f"CustomException occurred: {ce}")
+#         return jsonify({"error": "An error occurred during the training pipeline.", "details": str(ce)}), 500
+#     except Exception as e:
+#         logger_obj.error(f"Unhandled exception occurred: {e}")
+#         return jsonify({"error": "An unhandled error occurred.", "details": str(e)}), 500
 
 
 
