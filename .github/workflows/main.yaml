@@ -82,16 +82,18 @@ jobs:
         run: |
          docker pull ${{secrets.ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
          
-      - name: Run Docker Image to serve users
-        run: |
-         docker run -d -p 8080:8080 --name=cnncls \
-         -e 'DB_ENDPOINT=${{ secrets.DB_ENDPOINT }}' \
-         -e 'DB_USER=${{ secrets.DB_USER }}' \
-         -e 'DB_PASSWORD=${{ secrets.DB_PASSWORD }}' \
-         -e 'DB_PORT=${{ secrets.DB_PORT }}' \
-         -e 'DB_NAME=${{ secrets.DB_NAME }}' \
-         ${{secrets.ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
-      
+         - name: Run Docker Image to serve users
+         run: |
+           docker stop cnncls || true
+           docker rm cnncls || true
+           docker run -d -p 8080:8080 --name=cnncls \
+           -e 'DB_ENDPOINT=${{ secrets.DB_ENDPOINT }}' \
+           -e 'DB_USER=${{ secrets.DB_USER }}' \
+           -e 'DB_PASSWORD=${{ secrets.DB_PASSWORD }}' \
+           -e 'DB_PORT=${{ secrets.DB_PORT }}' \
+           -e 'DB_NAME=${{ secrets.DB_NAME }}' \
+           ${{secrets.ECR_LOGIN_URI}}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+       
       - name: Clean previous images and containers
         run: |
          docker system prune -f
