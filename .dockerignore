@@ -1,2 +1,9 @@
 .env
 /bases
+/mvp-notebook
+/raw_data
+/logs
+/configurations
+/catboost_info
+/batch_sample
+/schemas
