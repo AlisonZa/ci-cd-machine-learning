@@ -2,9 +2,9 @@
 
 ## Project Overview
 
-The focus of this project is to create a **Continous Integration/Continous delivery Machine Learning Pipeline**, using the **industry standart modular code**. This project can be used as template for future products, and it contains a **detailed implementation and code maintenance guide**. Also, **check the last section of this readme to see how little adaptions can add new functionalities to this code** (Including a Continous Training - Continous Integration - Continous Delivery pipeline  giving it a higher level of automation).
+The focus of this project is to create a **Continous Integration/Continous delivery Machine Learning Pipeline**, using the **industry-standard modular code**. This project can be used as a template for future products, and includes a **detailed implementation and code maintenance guide**. Also, **check the last section of this readme to see how minor adaptations can add new functionalities to this code** (Including a Continous Training - Continous Integration - Continous Delivery pipeline  giving it a higher level of automation).
 
-Despite, the model performance not be the focus of this project, it acheived a great level. The problem was solved using the students_performance_dataset (regression task). For further information about the data and problem, please refer to `mvp-notebook` module.
+Although model performance was the primary focus of this project, it acheived a great level. The problem was solved using the students_performance_dataset (regression task). For further information about the data and problem, please refer to `mvp-notebook` module.
 
 ![alt text](image-1.png)
 
