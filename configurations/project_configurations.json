@@ -7,22 +7,6 @@
         "categorical_tolerance": 0.2,
         "reference_statistics": "schemas\\reference_stats.json"
     },
-    "feature_definition": {
-        "target_column": "math_score",
-        "categorical_ordinals": [
-            "parental_level_of_education"
-        ],
-        "categorical_nominals": [
-            "gender",
-            "race_ethnicity",
-            "lunch",
-            "test_preparation_course"
-        ],
-        "numeric_scalars": [
-            "reading_score",
-            "writing_score"
-        ]
-    },
     "model_training": {
         "main_scoring_criteria": "r2_score",
         "number_of_folds_kfold": 5

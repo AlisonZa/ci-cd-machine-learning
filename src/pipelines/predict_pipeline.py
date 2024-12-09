@@ -5,7 +5,7 @@ from src.components.prediction_logging import PredictionLoggerLocal, DatabasePre
 import pandas as pd
 from typing import Union, List
 
-logger = DatabasePredictionLogger() # Change it to PredictionLoggerLocal if you want just the local logging
+logger = PredictionLoggerLocal() # Change it to DatabasePredictionLogger if you want just the database logging
 
 def predict_pipeline(input_data: Union[PredictionInput, List[PredictionInput]], logger = logger) -> List[PredictionOutput]:
     """

@@ -1,5 +1,5 @@
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 @dataclass
 class DataIngestionConfig:
@@ -11,7 +11,6 @@ class DataIngestionConfig:
             Defaults to "raw_data/students.csv".
     """
     raw_data_path: str = os.path.join("raw_data", "students.csv")
-
 
 @dataclass
 class DataValidationConfig:
@@ -29,27 +28,6 @@ class DataValidationConfig:
     numerical_tolerance: float = 1.3
     categorical_tolerance: float = 0.2
     reference_statistics: str = os.path.join("schemas", "reference_stats.json")
-
-
-@dataclass
-class FeatureDefinition:
-    """
-    Definition of dataset features including target, categorical, and numerical attributes.
-
-    Attributes:
-        target_column (str): Name of the target column. Defaults to "math_score".
-        categorical_ordinals (list[str]): List of ordinal categorical feature names.
-            Defaults to ["parental_level_of_education"].
-        categorical_nominals (list[str]): List of nominal categorical feature names.
-            Defaults to ["gender", "race_ethnicity", "lunch", "test_preparation_course"].
-        numeric_scalars (list[str]): List of numerical scalar feature names. 
-            Defaults to ["reading_score", "writing_score"].
-    """
-    target_column: str = "math_score"
-    categorical_ordinals: list[str] = field(default_factory=lambda: ["parental_level_of_education"])
-    categorical_nominals: list[str] = field(default_factory=lambda: ["gender", "race_ethnicity", "lunch", "test_preparation_course"])
-    numeric_scalars: list[str] = field(default_factory=lambda: ["reading_score", "writing_score"])
-
 
 @dataclass
 class ModelTrainingParams:

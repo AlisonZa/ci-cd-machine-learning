@@ -4,7 +4,7 @@ import json
 import os
 
 # import the classes that are going to be configured by the MLConfig class, in the final of this file we instantiate the object
-from configurations.config_entities import DataIngestionConfig, DataValidationConfig, FeatureDefinition, ModelTrainingParams
+from configurations.config_entities import DataIngestionConfig, DataValidationConfig, ModelTrainingParams
 
 @dataclass
 class MLConfig:
@@ -23,7 +23,6 @@ class MLConfig:
     """
     data_ingestion: DataIngestionConfig = DataIngestionConfig()
     data_validation: DataValidationConfig = DataValidationConfig()
-    feature_definition: FeatureDefinition = FeatureDefinition()
     model_training: ModelTrainingParams = ModelTrainingParams()
 
     @classmethod
@@ -49,7 +48,6 @@ class MLConfig:
         return cls(
             data_ingestion=DataIngestionConfig(**config_dict['data_ingestion']),
             data_validation=DataValidationConfig(**config_dict['data_validation']),
-            feature_definition=FeatureDefinition(**config_dict['feature_definition']),
             model_training=ModelTrainingParams(**config_dict['model_training'])
         )
 

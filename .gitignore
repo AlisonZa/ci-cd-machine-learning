@@ -5,3 +5,5 @@ catboost_info/
 /logs
 us-east-2-bundle.pem
 /prediction_logs
+notes.ipynb
+/image

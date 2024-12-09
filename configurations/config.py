@@ -5,8 +5,7 @@ import os
 import json
 
 # import the classes that are going to be configured by the MLConfig class
-from configurations.config_entities import DataIngestionConfig, DataValidationConfig, FeatureDefinition, ModelTrainingParams
-
+from configurations.config_entities import DataIngestionConfig, DataValidationConfig, ModelTrainingParams
 
 # To create the Json File that is going to be passed to the class MLConfig, we use the following code:
 class DataclassConfigurationApp:
@@ -22,13 +21,11 @@ class DataclassConfigurationApp:
         # Create tabs
         self.data_ingestion_frame = self.create_data_ingestion_tab()
         self.data_validation_frame = self.create_data_validation_tab()
-        self.feature_definition_frame = self.create_feature_definition_tab()
         self.model_training_frame = self.create_model_training_tab()
 
         # Add tabs to notebook
         self.notebook.add(self.data_ingestion_frame, text="Data Ingestion")
         self.notebook.add(self.data_validation_frame, text="Data Validation")
-        self.notebook.add(self.feature_definition_frame, text="Feature Definition")
         self.notebook.add(self.model_training_frame, text="Model Training")
 
         # Save button
@@ -62,41 +59,12 @@ class DataclassConfigurationApp:
         self.categorical_tolerance_entry.insert(0, "0.2")
         self.categorical_tolerance_entry.pack(pady=5)
         tk.Label(frame, text="Allowed range: 0 to 1", foreground="gray").pack()
-
+ 
         # Reference Statistics Path
         tk.Label(frame, text="Reference Statistics Path:").pack(pady=(10,0))
         self.reference_statistics_entry = tk.Entry(frame, width=50)
         self.reference_statistics_entry.insert(0, os.path.join("schemas", "reference_stats.json"))
         self.reference_statistics_entry.pack(pady=5)
-
-        return frame
-
-    def create_feature_definition_tab(self):
-        frame = ttk.Frame(self.notebook)
-        
-        # Target Column
-        tk.Label(frame, text="Target Column:").pack(pady=(10,0))
-        self.target_column_entry = tk.Entry(frame, width=30)
-        self.target_column_entry.insert(0, "math_score")
-        self.target_column_entry.pack(pady=5)
-
-        # Categorical Ordinals
-        tk.Label(frame, text="Categorical Ordinals (comma-separated):").pack(pady=(10,0))
-        self.categorical_ordinals_entry = tk.Entry(frame, width=50)
-        self.categorical_ordinals_entry.insert(0, "parental_level_of_education")
-        self.categorical_ordinals_entry.pack(pady=5)
-
-        # Categorical Nominals
-        tk.Label(frame, text="Categorical Nominals (comma-separated):").pack(pady=(10,0))
-        self.categorical_nominals_entry = tk.Entry(frame, width=50)
-        self.categorical_nominals_entry.insert(0, "gender,race_ethnicity,lunch,test_preparation_course")
-        self.categorical_nominals_entry.pack(pady=5)
-
-        # Numeric Scalars
-        tk.Label(frame, text="Numeric Scalars (comma-separated):").pack(pady=(10,0))
-        self.numeric_scalars_entry = tk.Entry(frame, width=50)
-        self.numeric_scalars_entry.insert(0, "reading_score,writing_score")
-        self.numeric_scalars_entry.pack(pady=5)
 
         return frame
 
@@ -162,14 +130,6 @@ class DataclassConfigurationApp:
                 reference_statistics=self.reference_statistics_entry.get()
             )
 
-            # Feature Definition
-            feature_definition = FeatureDefinition(
-                target_column=self.target_column_entry.get(),
-                categorical_ordinals=self.categorical_ordinals_entry.get().split(','),
-                categorical_nominals=self.categorical_nominals_entry.get().split(','),
-                numeric_scalars=self.numeric_scalars_entry.get().split(',')
-            )
-
             # Model Training Params
             model_training_params = ModelTrainingParams(
                 main_scoring_criteria=main_scoring_criteria,
@@ -180,7 +140,6 @@ class DataclassConfigurationApp:
             config_dict = {
                 "data_ingestion": vars(data_ingestion_config),
                 "data_validation": vars(data_validation_config),
-                "feature_definition": vars(feature_definition),
                 "model_training": vars(model_training_params)
             }
 

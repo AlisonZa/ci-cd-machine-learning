@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 from typing import Union
-from typing import List, Optional, Dict, Any
+from typing import Dict, Any
 
 ######### Communications:
 @dataclass
@@ -72,6 +72,28 @@ class DataValidationArtifacts:
     """
     data_validation_root_folder: str = os.path.join("artifacts", "data_validation")  # Creates the step folder
     validated_data_path: str = os.path.join(data_validation_root_folder, 'validated_data.csv')
+
+
+@dataclass
+class FeatureDefinition:
+    """
+    Definition of dataset features including target, categorical, and numerical attributes.
+
+    Attributes:
+        target_column (str): Name of the target column. Defaults to "math_score".
+        categorical_ordinals (list[str]): List of ordinal categorical feature names.
+            Defaults to ["parental_level_of_education"].
+        categorical_nominals (list[str]): List of nominal categorical feature names.
+            Defaults to ["gender", "race_ethnicity", "lunch", "test_preparation_course"].
+        numeric_scalars (list[str]): List of numerical scalar feature names. 
+            Defaults to ["reading_score", "writing_score"].
+    """
+    target_column: str = "math_score"
+    categorical_ordinals: list[str] = field(default_factory=lambda: ["parental_level_of_education"])
+    categorical_nominals: list[str] = field(default_factory=lambda: ["gender", "race_ethnicity", "lunch", "test_preparation_course"])
+    numeric_scalars: list[str] = field(default_factory=lambda: ["reading_score", "writing_score"])
+
+
 
 @dataclass
 class DataPreprocessingArtifacts:
@@ -152,9 +174,7 @@ class ModelTrainingArtifacts:
     results = None
     best_score_value:float = None
     
-    # TODO move it to the configurator, so the user can manage it
     minimal_performance:float = 0.80 # 80% of r2_score
-
 
 
 ########### Prediction Pipeline: ##############################################################################################################
@@ -213,6 +233,6 @@ class PredictionOutput:
     optional probabilities for each class, and an optional explanation.
 
     Attributes:
-        prediction (int): The predicted value or label (e.g., target score or class).
+        prediction (float): The predicted value or label (e.g., target score or class).
     """
-    prediction: int
+    prediction: float

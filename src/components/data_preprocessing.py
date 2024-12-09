@@ -5,8 +5,7 @@ import joblib
 
 from src.utils import logger_obj,CustomException
 
-from configurations import pipeline_config_obj
-from src.entities import DataValidationArtifacts, DataPreprocessingArtifacts
+from src.entities import DataValidationArtifacts, DataPreprocessingArtifacts, FeatureDefinition
 
 from sklearn.model_selection import train_test_split
 
@@ -43,7 +42,7 @@ class DataPreprocessing:
         """
         self.data_validation_artifacts = DataValidationArtifacts()
         self.data_preprocessing_artifacts = DataPreprocessingArtifacts()
-        self.feature_definition = pipeline_config_obj.feature_definition
+        self.feature_definition = FeatureDefinition()
 
         try:
             # Create directories for storing preprocessed data

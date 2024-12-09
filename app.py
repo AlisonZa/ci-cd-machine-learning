@@ -101,7 +101,7 @@ def batch_predict():
     
     return render_template('batch_predict.html', error='Invalid file type. Please upload a CSV.')
 
-# Commented for deployment
+# Commented for AWS deployment
 # @app.route('/train', methods=['GET','POST'])
 # def train_pipeline():
 #     """
