@@ -147,7 +147,7 @@ The training pipeline performs the following steps:
 1. Ingest the data
 2. Validate the data (schema/structure and data drift)
 3. Instantiate and train the preprocessor
-4. Transform the data, train multiple models, tune the hyperparameters, evaluate and choose the best model. 
+4. Transform the data, train multiple models, tune the hyperparameters, evaluate( and analyze if the model meets the minimum scoring criteria) and choose the best model. 
 
 It also informs the user if the steps ran successfully or if some error occurred.
 
@@ -519,6 +519,12 @@ This is how the basic component and pipeline are structured:
 * Create a class with a contructor method (usually receive the previous step artifacts, this new step artifacts configuration, and any additional parameters[users input])
 
 4. Update your pipeline `src\pipelines\your_pipeline.py` with the components.
+
+### Change the Main Scoring Criteria
+
+1. Run the configuration GUI and select the scoring criteria
+
+2. Go to `src\entities.py` class `class ModelTrainingArtifacts` and change the `minimal_performance`, the function that will receive this information is already configured to deal with metrics should be minimized (MSE, MAE, RSME) and maximized (R2_score). If your main metrics should be minimized this parameter must be your maximum tolerated error.
 
 ## Modifications to Add New Functionalities
 
