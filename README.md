@@ -1,14 +1,14 @@
 # CI-CD Machine Learning Project
 
-## Project Overview
+## 1. Project Overview
 
-The focus of this project is to create a **Continous Integration/Continous delivery Machine Learning Pipeline**, using the **industry-standard modular code**. This project can be used as a template for future products, and includes a **detailed implementation and code maintenance guide**. Also, **check the last section of this readme to see how minor adaptations can add new functionalities to this code** (Including a Continous Training - Continous Integration - Continous Delivery pipeline  giving it a higher level of automation).
+The focus of this project is to create a **Continous Integration/Continous Delivery Machine Learning Pipeline**, using the **industry-standard modular code**. This project can be used as a template for future products, and includes a **detailed implementation and code maintenance guide**. Also, **check the last section of this readme to see how minor adaptations can add new functionalities to this code** (Including a Continous Training - Continous Integration - Continous Delivery pipeline  giving it a higher level of automation).
 
-Although model performance was the primary focus of this project, it acheived a great level. The problem was solved using the students_performance_dataset (regression task). For further information about the data and problem, please refer to `mvp-notebook` module.
+Although model performance was the primary focus of this project, it achieved a high level. The problem was solved using the students_performance_dataset (regression task). For more information about the data and problem, please refer to `mvp-notebook` module.
 
-![alt text](image-1.png)
+![1733770699135](image/README/1733770699135.png)
 
-**After finishing the project configuration you can interact with the aplication by using the following commands(locally)**
+**After finishing the project configuration you can interact with the application by using the following commands(locally)**
 
 Open the parameters configuration GUI
 ```bash
@@ -26,23 +26,23 @@ Run the training pipeline:
 python -m src.pipelines.training_pipeline
 ```
 
-## Project Features
+## 2. Project Features
 
-This project contains a lot of useful features that embraces concetps of MLOPS, from model development, experiment tracking, prediction logging, etc...
+This project contains a lot of useful features that embraces concepts of `MLOPS`: from model development, experiment tracking, prediction logging, etc...
 
-Bellow you find the explanation to them:
+Below is an explanation of each of them:
 
 ### Minimum Viable Solution Development:
 
-* Perform the Exploratory Data Analysys, checking for data quality and providing insights about our dataset distribution;
-* Explore the Data Cleaning/Preprocessing/Transformation process and create the pipeline
-* Train some Models in order to discover if we can solve the problem
+* Perform the Exploratory Data Analysis, checking data quality and providing insights about our data distribution;
+* Explore data cleaning, preprocessing, and transformation processes(to create the pipeline); and
+* Train mutliple models in order to discover if we can solve the problem
 
-In this module(`mvp-notebook`) you can see the step by step process, in a ipynb notebook, with comments and conclusions. 
+In this module(`mvp-notebook`) you can see the step by step process, in a Jupyter notebook with comprehensive comments and conclusions. 
 
 ### Data Versioning with DVC
 
-DVC organizes images, audio, files, video and text in **storage** and organize your ml modeling into a **reproductible**.
+DVC organizes images, audio, files, video and text in **storage** and organize your ML modeling into a reproducible workflow.
 
 ✨ Basic Uses of DVC:
 
@@ -54,9 +54,9 @@ If you store and process data files or datasets to produce other data or machine
 
 ### E-mail Communication
 
-The E-mail communication is very important, because, by using it, we can inform the Dev/MLEnginner if some problem happened in the pipeline, so he can check it. Also by using our model can have a higher level of autonomy, because the Dev/MLEnginner knows that if something happen, he will know, and will be able to fix it.
+Email communication is crucial for notifying the Dev/MLEngineer of any issues in the pipeline, enabling quick troubleshooting and monitoring.
 
-This is an a example of how the e-mail feature works:
+This is an example of how the e-mail feature works:
 
 ![1733756620883](image/README/1733756620883.png)
 
@@ -64,11 +64,11 @@ In the `src\utils\__init__.py` the Dev/Machine Learning Engineer can change the 
 
 ### MLFlow Experiment Tracking
 
-MLFlow is an Experiment Tracking tool. Here are the results of the MLFlow implementation:
+MLFlow is a powerful open-source platform for managing the end-to-end machine learning lifecycle. As an Experiment Tracking tool, it provides comprehensive insights into your machine learning experiments. Here are the implementation results:
 
 ![1733755675231](image/README/1733755675231.png)
 
-And the experiment will have the models run , we can compare the model s performance
+Comprehensive Experiment Comparison, easily compare multiple model runs side by side
 
 ![1733755710514](image/README/1733755710514.png)
 
@@ -76,25 +76,25 @@ Analyze their hyperparameters:
 
 ![1733755732636](image/README/1733755732636.png)
 
-The artifacts, also get logged.
+The artifacts also get logged.
 
-By default this functionality is deactivated, you can activate it by following the comments of the lines 476-478 of the file `src\components\model_training.py`
+**By default the MLFlow functionality is deactivated, you can activate it by following the comments of the lines 476-478 of the file `src\components\model_training.py`**
 
 ### Logger
 
-Logging is fundamental to keep track of the pipelines runs, as well, to provide error details in a structured way this is an example of the logging file provided by this application:
+Logging is fundamental to keep track of the pipelines runs, as well, to provide error details in a structured way. It facilitates debugging and monitoring and provides a comprehensive audit trail. This is an example of the logging file provided by this application:
 
 ![1733756322192](image/README/1733756322192.png)
 
-In the `src\utils\logging\__init__.py` the user can change the method, so the type of logging structure is also customized.
+In the `src\utils\logging\__init__.py` the user can change the logging method, so the type of logging structure is also configurable.
 
 ### Predictions Logger
 
-The project contains two types of predictions loggings, they are both implemente in `src\components\prediction_logging.py`, and instantiated in `src\pipelines\predict_pipeline.py`
+The project contains two types of prediction loggers, they are both implemented in `src\components\prediction_logging.py`, and instantiated in `src\pipelines\predict_pipeline.py`
 
 **If you want to change the type of logger just change the object passed to the var logger in `src\pipelines\predict_pipeline.py`**
 
-1. Database Prediction
+#### **Database Logger**
 
 Logs the inputs and predictions to a Cloud Database as shown:
 
@@ -102,15 +102,27 @@ Logs the inputs and predictions to a Cloud Database as shown:
 
 ![1733756912671](image/README/1733756912671.png)
 
-2. Local Predictions
+Provides:
 
-Logs the inputs and predictions to the local file folder, as shown:
+* Persistent storage of prediction records
+* Easy retrieval and analysis
+* Scalable tracking mechanism
+
+#### **Local Logger**
+
+Logs the inputs and predictions to the local file system, as shown:
 
 ![1733756963103](image/README/1733756963103.png)
 
+Provides: 
+
+* Quick, file-based logging
+* Useful for local development and testing
+* Immediate accessibility of prediction records
+
 ### Configuration Module
 
-This module aims to allow the user to interact/configure the pipeline (this works as a blueprint for the configurations that the user can be allowed to input).
+This module allows the user to interact with and configure the pipeline, serving as a template for permitted parameters. It also validates the user inputs.
 
 By running:
 ```bash
@@ -121,7 +133,8 @@ The following GUI will open:
 
 ![1733757460620](image/README/1733757460620.png)
 
-Allowing the user to set some configurations, by clicking in save it will create .json file that will be read(in the `__init__.py`) and transformed into attributes of a MLConfig class.
+Allowing the user to set some configurations. 
+By clicking `save` it will create `.json` file that will be read (in the `__init__.py`) and transformed into attributes of a `MLConfig class` object.
 
 This is the workflow of the configuration module:
 
@@ -134,13 +147,13 @@ The training pipeline performs the following steps:
 1. Ingest the data
 2. Validate the data (schema/structure and data drift)
 3. Instantiate and train the preprocessor
-4. Transform the data and train the model 
+4. Transform the data, train multiple models, tune the hyperparameters, evaluate and choose the best model. 
 
-Also it Informs the user if the steps ran successfully or if some error happened
+It also informs the user if the steps ran successfully or if some error occurred.
 
 ### Prediction Pipeline
 
-The predict pipeline imports the object from the prediction component, instantiate the logger, and allow us to perform two types of prediction:
+The `prediction_pipeline` imports the object from the `prediction_component`, instantiate the logger; and allow us to perform two types of prediction:
 
 1. Single data-point predicition
 
@@ -148,12 +161,11 @@ The predict pipeline imports the object from the prediction component, instantia
 
 ### GitHub Workflow
 
-This feature, allow us to run some action everytime some sort of git command is triggered(push/pull), in our case, it allow us to continous deploy our docker image into an ECR and then serve it using a EC2 container.
+This feature, allows us to run an action every time a git command is triggered (e.g., push/pull). In our case, it allows continuous deployment of our docker image into an ECR and then serve it using a EC2 container.
 
 Result: 
 
 ![1733768765254](image/README/1733768765254.png)
-
 
 ### AWS - Deployment
 
@@ -173,22 +185,21 @@ Allow us to serve our application by using the cloud:
 * Tkinter - Configuration GUI Creation
 * GitHub Workflows - Continous Integration/Continous Deployment
 
-## Running the Project on your Computer
+## 3. Running the Project on your Computer
 
-1. Create an python 3.10.15 virtual environment, activate this environment
+1. Create a `python 3.10.15 virtual environment`, `activate the environment`
 2. Clone this repository by using:
 ```bash
 git clone https://github.com/AlisonZa/ci-cd-machine-learning
 ```
 3. Install the requirements in your virtual environment 
-
 ```bash
 pip install -r requirements.txt
 ```
 
-Follow the configurations bellow, and keep updating your .env:
+**Follow the configurations below, and keep updating your .env:**
 
-### E-mail
+### E-mail - Module Configuration
 
 To use e-mails with python you need to create a password App:
 
@@ -198,9 +209,11 @@ To use e-mails with python you need to create a password App:
 2. Navigate to Security, then click on App Passwords.
 3. Select Mail and Other (Custom name), then generate the password.
 4. This will give you a 16-character password that you can use in your Python script instead of your Google account password.
-5. Store this information in your .env
+5. Store this information in your `.env` file
 
 ### DVC - Data versioning Setup
+
+Run the following lines of code:
 
 ```bash
 # Initialize DVC in Your Project
@@ -217,7 +230,7 @@ dvc add raw_data/students.csv
 git add raw_data/students.csv.dvc .gitignore
 git commit -m "Track raw_data/students.csv with DVC"
 ```
-Now the DVC is taking care of our data versioning control.
+Now the DVC is keeping track of your data versioning.
 The versions are being cached, and can be restored as checkpoints by the md5 identifier
 
 ### DVC Common Commands
@@ -227,13 +240,11 @@ The versions are being cached, and can be restored as checkpoints by the md5 ide
 1. Update the file
 
 2. Update the DVC Tracking
-
 ```Bash
 dvc add raw_data/students.csv
 ```
 
 3. Commit Changes to Git
-
 ```Bash
 git add raw_data/students.csv.dvc
 git commit -m "Updated raw_data/students.csv to the new version <insert details of data version here, or control it by a external log>"
@@ -242,7 +253,6 @@ git commit -m "Updated raw_data/students.csv to the new version <insert details 
 #### Restoring an Older Data Version(Local)
 
 1. Identify the Desired Git Commit
-
 ```Bash
 git log
 ```
@@ -250,22 +260,20 @@ git log
 Look for the commit message related to the version you want to restore.
 
 2. Checkout the Desired Commit
-
 ```bash
 git checkout <commit_hash>
 ```
 
 3. Checkout the Desired Commit
-
 ```bash
 dvc checkout
 ```
 
-**This is will probably change your git status to detached HEAD, be sure to return it and to merge all the necessaries changes**
+**This is will probably change your git status to detached HEAD, be sure to return it and to merge all the necessary changes**
 
 ### DagsHub/MLFlow
 
-We are going to use DagsHub, so we can store our MLFlow Experiments in the Cloud,
+We are going to use DagsHub, so we can store our MLFlow Experiments in the Cloud.
 
 Create an account in dagshub, go to the home -> Create + -> New Repository -> Connect a repository -> GitHub -> Choose your repository -> Connect Repository
 
@@ -312,7 +320,7 @@ security group -> Edit inbound rules:
 * Port Range: 5432
 * Source: 0.0.0.0/0 **(for testing, more restrictive in production)**
 
-### CI-CD Pipeline Ensembling and AWS EC2/ECR Configuration
+### CI-CD Pipeline Creation and AWS EC2/ECR Configuration
 
 #### Dockerizing:
 
@@ -322,13 +330,13 @@ security group -> Edit inbound rules:
 pip freeze > requirements.txt
 ```
 
-2. We are goint to create the `dockerfile`, using the python version that our project has been built with
+2. We are going to create the `dockerfile`, using the python version that our project has been built with (3.10)
 
-This `dockerfile` is going to be build in some cloud provider, everytime we made a new commit, to do so, we need to set a `github workflow` 
+This `dockerfile` is going to be mounted in the cloud provider, everytime we make a new commit, to do so, we need to set a `github workflow` 
 
-3. Create a `.dockerignore` and write `.env` in there (good security practice)
+3. Create a `.dockerignore` and write `.env` in there (good practice for security)
 
-The dockerfile will be mounted within the CICD run
+The dockerfile will be mounted within the CICD run.
 
 #### Setting Up GitHub Workflow:
 
@@ -338,7 +346,7 @@ The dockerfile will be mounted within the CICD run
 
 #### AWS Deployment
 
-Description: About the deployment (all of these steps are going to be automatically performed by our CI-CD pipeline)
+Description: About the deployment (all of these steps are going to be automatically performed by our CI-CD pipeline):
 
 1. Build docker image of the source code
 
@@ -348,7 +356,9 @@ Description: About the deployment (all of these steps are going to be automatica
 
 4. Pull Your image from ECR in EC2
 
-5. Lauch your docker image in EC2
+5. Lauch your Docker image in EC2
+
+To configure it, follow the steps below:
 
 ##### IAM
 
@@ -422,13 +432,13 @@ ECR_LOGIN_URI
 ECR_REPOSITORY_NAME
 ```
 
-## Code Maintenance Guide
+## 4. Code Maintenance Guide
 
 ### New Data
 
-1. In `schemas\data_structure.py` adapt the data_validation rules
+1. In `schemas\data_structure.py` update the data_validation rules
 
-2. Run the following code to create the statistics references to your dataframe
+2. Run the following code to create the reference_stats to your dataframe
 
 ```python
 # TODO: Update this according to your dataset
@@ -473,18 +483,18 @@ with open("schemas/reference_stats.json", "w") as f:
 
 6. In `src\components\prediction_logging.py`:
 
-* class `PredictionLoggerLocal`: Update the section # Prepare log data
-* class `DatabasePredictionLogger` Update the query of the method `_create_predictions_table`, in the method `log_prediction` update the section commented with `# Prepare database entry` and `# Prepare prediction data for CSV`, still in this method, update the variable `insert_query` 
+* class `PredictionLoggerLocal`: Update the section `# Prepare log data`
+* class `DatabasePredictionLogger` Update the query of the method `_create_predictions_table`, in the method `log_prediction` update the section labeled with `# Prepare database entry` and `# Prepare prediction data for CSV`, still in this method, update the variable `insert_query` 
 
-7. In `src\pipelines\predict_pipeline.py`, function `batch_predict_pipeline`: update the section commented with `# Convert DataFrame rows to PredictionInput instances` 
+7. In `src\pipelines\predict_pipeline.py`, function `batch_predict_pipeline`: update the section labeled with `# Convert DataFrame rows to PredictionInput instances` 
 
 8. In `src\components\prediction.py`,  class `RegressionComponent`, method `predict`: update the variable: `features_list`
 
-9. Update your html templates in `templates` to support the new input/output variables
+9. Update your html templates in `templates` to support the new input/output formats.
 
 ### New Components/ Pipeline
 
-This is how the basic component/pipeline are structured:
+This is how the basic component and pipeline are structured:
 
 ![1733767695143](image/README/1733767695143.png)
 
@@ -492,7 +502,7 @@ This is how the basic component/pipeline are structured:
 
 0. You can test by running your code in a Jupyter Notebook in `research`
 
-1. Update the `src\entities.py` with the dataclass that is going to serve as input to your component class
+1. Update the `src\entities.py` with the dataclass that is going to serve as input to your component class. Each dataclasse can contain:
 
 * It can contain paths to your model output 
 * Configurations/params
@@ -514,35 +524,32 @@ This is how the basic component/pipeline are structured:
 
 1. The aim of this project, was to make a highly automated, data-centric project however with little adjustements this project could support human interation, such as:
 
-* Train different Models, report their performance, and asks to the user which one of them he want to tune, as well with the Grid Search Parameters;
+* Train different Models, report their performance, and asks the user which one of them he want to tune, as well with the Grid Search Parameters;
 
 * Perform the process above, and ask what models the user wants to ensemble;
 
 * These process could run automatically, and them notify via e-mail(or a dashboard) when the user needs to interact;
 
-* If this is our objective, we can implement and iterative human-in-the-loop Error-Analysys/Feature Engineering.
+* If this is our objective, we can implement and iterative human-in-the-loop Error-Analysis/Feature Engineering.
 
-* The user interaction could be done by a module simmilar to the configurations module
+* The user interaction could be done by a module similar to the configurations module
 
 By doing that, we will have a process with less automation, but with greater human control
 
-2. By now this code is triggered by pull/push, however it also can be triggered by different options, and be classified as **`Continous Training(CT)`**(for now the re-training is triggered by the user) with a few adjustements:
+2. currently, this code is triggered by a pull/push, however it also can be triggered by different options, and be classified as **`Continous Training(CT)`**(for now the re-training is triggered by the user) with a few adjustments:
 
-* Locally (cost saving) we could use the windows `task_scheduler` to run a `.py` file that checks for changes in our dataset(number of samples as an example) time by time(every 4 hours as an example), and then triggers our pipeline once some condition gets satisfied.
+* Locally (cost saving) we could use the windows `task_scheduler` to run a `.py` file that checks for changes in our dataset(number of samples per example) time by time(every 4 hours per example), and then triggers the pipeline once a condition is satisfied.
 
-* Cloud, we could use some service, such as `AWS lambda`, uncomment the endpoint of `/train` (commented for deployment), and them trigger this endpoint when some condition gets satisffied.
+* Cloud, we could use some service, such as `AWS lambda`, uncomment the endpoint of `/train` (commented for deployment), and them trigger this endpoint when some condition is satisffied.
 
 3. Because we keep track of the inputs and the predictions we can easily implemente a fully automated/ highly automated monitoring module as shown:
 
 ![1733769709638](image/README/1733769709638.png)
 
-## Future Improvements
+## 5.Future Improvements
 
 * Add Evidently AI to the data validation and Monitoring steps
 
 * Implement checkpoint for pipeline steps
 
 * Update the data ingestion pipeline so it can handle multiple file extensions
-
-
-
