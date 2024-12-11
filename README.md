@@ -542,13 +542,13 @@ This is how the basic component and pipeline are structured:
 
 By doing that, we will have a process with less automation, but with greater human control
 
-2. currently, this code is triggered by a pull/push, however it also can be triggered by different options, and be classified as **`Continous Training(CT)`**(for now the re-training is triggered by the user) with a few adjustments:
+2. currently, this code is triggered by a pull/push, however it also can be triggered by different options, and assume the classification of **`Continous Training(CT)`** with a few adjustments:
 
-* Locally (cost saving) we could use the windows `task_scheduler` to run a `.py` file that checks for changes in our dataset(number of samples per example) time by time(every 4 hours per example), and then triggers the pipeline once a condition is satisfied.
+* Locally (cost saving) we could use the windows `task_scheduler` to run a `.py` file that checks for changes in our dataset(number of samples per example) time by time(every 4 hours per example), and then trigger the pipeline once a condition is satisfied.
 
-* Cloud, we could use some service, such as `AWS lambda`, uncomment the endpoint of `/train` (commented for deployment), and them trigger this endpoint when some condition is satisffied.
+* Cloud, we could use some service, such as `AWS lambda` to trigger a /train endpoint when some condition is satisfied.
 
-3. Because we keep track of the inputs and the predictions we can easily implemente a fully automated/ highly automated monitoring module as shown:
+3. Because we keep track of the inputs and the predictions we can easily implement a fully/highly automated monitoring module as shown:
 
 ![1733769709638](image/README/1733769709638.png)
 
